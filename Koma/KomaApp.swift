@@ -6,12 +6,31 @@
 //
 
 import SwiftUI
+import SwiftData
 
 @main
 struct KomaApp: App {
+    @State private var rootManager = RootManager()
+    @State private var mangaListViewModel = MangaViewModel()
+    
+    var sharedModelContainer: ModelContainer {
+        let schema = Schema([MangaDB.self])
+        
+        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+        
+        do {
+            return try ModelContainer(for: schema, configurations: modelConfiguration)
+        } catch {
+            fatalError("No se pudo crear el model container \(error)")
+        }
+    }
+    
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            RootView()
+                .environment(rootManager)
+                .environment(mangaListViewModel)
         }
+        .modelContainer(sharedModelContainer)
     }
 }
