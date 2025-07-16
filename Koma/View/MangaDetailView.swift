@@ -22,7 +22,7 @@ struct MangaDetailView: View {
                             .resizable()
                             .scaledToFill()
                             .blur(radius: 40)
-                            .opacity(0.2)
+                            .opacity(0.3)
                             .ignoresSafeArea()
                     default:
                         EmptyView()
@@ -122,8 +122,10 @@ struct MangaDetailView: View {
                 Image(systemName: systemImage)
                 Text(title)
             }
-            .padding(10)
-            .background(.thinMaterial)
+            .padding()
+            .frame(maxWidth: 100)
+            .background(.white)
+            .foregroundColor(.black)
             .clipShape(RoundedRectangle(cornerRadius: 12))
         }
     }
