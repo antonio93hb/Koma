@@ -120,5 +120,6 @@ private struct PreviewWrapper: View {
             .task {
                 await testViewModel.loadIfNeeded()
             }
+            .tint(.primary)
     }
 }

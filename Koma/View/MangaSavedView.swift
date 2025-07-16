@@ -40,7 +40,9 @@ struct MangaSavedView: View {
     }
 }
 
-//#Preview {
-//    MangaSavedView(viewModel: .init(network: NetworkTest()))
-//}
+#Preview {
+    let testViewModel = MangaViewModel(network: NetworkTest())
+    return MangaSavedView()
+        .environment(testViewModel)
+}
 
