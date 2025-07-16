@@ -48,7 +48,6 @@ extension MangaViewModel {
     func loadIfNeeded() async {
         guard !hasLoaded else { return }
         hasLoaded = true
-//        await loadFromSwiftData() // Primero los locales
         await fetchMangas()
         await getBestMangas()
     }
@@ -107,68 +106,8 @@ private extension MangaViewModel {
             }
             totalItems = response.metadata.total
             currentPage += 1
-            
-            //Guardar en SwiftData
-//            if let context = context {
-//                for manga in response.items {
-//                    await saveMangaIfNeeded(manga, in: context)
-//                }
-//            }
         } catch {
             errorMessage = MangaError.unknown(error).errorDescription
         }
     }
-    
-//    private func saveMangaIfNeeded(_ manga: Manga, in context: ModelContext) async {
-//        guard !(await mangaExists(id: manga.id)) else { return }
-//        
-//        let mangaDB = MangaDB(
-//            id: manga.id,
-//            title: manga.title,
-//            titleEnglish: manga.titleEnglish,
-//            titleJapanese: manga.titleJapanese,
-//            imageURL: manga.imageURL,
-//            url: manga.url,
-//            startDate: manga.startDate,
-//            endDate: manga.endDate,
-//            score: manga.score,
-//            status: manga.status,
-//            volumes: manga.volumes,
-//            chapters: manga.chapters,
-//            synopsis: manga.synopsis,
-//            background: manga.background,
-//            authors: [],
-//            genres: [],
-//            demographics: [],
-//            themes: []
-//        )
-//        context.insert(mangaDB)
-//    }
-    
-//    private func mangaExists(id: Int) async -> Bool {
-//        guard let context = context else { return false }
-//        var descriptor = FetchDescriptor<MangaDB>(
-//            predicate: #Predicate { $0.id == id }
-//        )
-//        descriptor.fetchLimit = 1
-//        
-//        do {
-//            let result = try context.fetch(descriptor)
-//            return !result.isEmpty
-//        } catch {
-//            return false
-//        }
-//    }
-    
-//    private func loadFromSwiftData() async {
-//        guard let context = context else { return }
-//        do {
-//            let descriptor = FetchDescriptor<MangaDB>()
-//            let result = try context.fetch(descriptor)
-//            self.mangas = result.map { $0.toManga }
-//        } catch {
-//            self.mangas = []
-//            self.errorMessage = MangaError.loadFromPersistence.errorDescription
-//        }
-//    }
 }

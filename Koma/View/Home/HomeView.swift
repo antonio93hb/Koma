@@ -10,16 +10,27 @@ struct HomeView: View {
             if viewModel.isLoading && viewModel.mangas.isEmpty {
                 ProgressView("Loading mangas...")
             } else {
-                Group {
-                    if isGridMode {
-                        ScrollView {
-                            mainContent(body: gridSection)
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 16) {
+                        CarruselSectionView()
+
+                        HStack {
+                            Text("Popular")
+                            Spacer()
+                            toggleViewButton
                         }
-                    } else {
-                        List {
-                            mainContent(body: listSection)
+                        .padding(.horizontal)
+
+                        if isGridMode {
+                            gridSection
+                        } else {
+                            listSection
                         }
-                        .listStyle(.plain)
+
+                        if viewModel.isLoading {
+                            ProgressView()
+                                .frame(maxWidth: .infinity)
+                        }
                     }
                 }
                 .navigationTitle("Descubrir")
@@ -30,7 +41,6 @@ struct HomeView: View {
     @ViewBuilder
     private func mainContent(body: some View) -> some View {
         CarruselSectionView()
-            .padding(.horizontal)
 
         HStack {
             Text("Popular")
@@ -56,16 +66,19 @@ struct HomeView: View {
     }
 
     private var listSection: some View {
-        ForEach(viewModel.mangas) { manga in
-            NavigationLink(destination: MangaDetailView(manga: manga)) {
-                MangaRow(manga: manga, showSavedIcon: true)
-                    .onAppear {
-                        Task {
-                            await viewModel.loadMoreIfNeeded(current: manga)
+        LazyVStack(alignment: .leading) {
+            ForEach(viewModel.mangas) { manga in
+                NavigationLink(destination: MangaDetailView(manga: manga)) {
+                    MangaRow(manga: manga, showSavedIcon: true)
+                        .onAppear {
+                            Task {
+                                await viewModel.loadMoreIfNeeded(current: manga)
+                            }
                         }
-                    }
+                }
             }
         }
+        .padding()
     }
 
     private var gridSection: some View {
