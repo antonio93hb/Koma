@@ -14,6 +14,10 @@ final class AuthorDB {
     var lastName: String
     var fullName: String
     var role: String
+    
+    // 🔁 Relación inversa con MangaDB
+    @Relationship(inverse: \MangaDB.authors)
+    var mangas: [MangaDB] = []
 
     init(id: String, firstName: String, lastName: String, fullName: String, role: String) {
         self.id = id

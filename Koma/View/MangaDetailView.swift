@@ -5,11 +5,15 @@
 //  Created by Antonio Hernández Barbadilla on 13/6/25.
 //
 import SwiftUI
+import SwiftData
 
 struct MangaDetailView: View {
 
+    @Environment(MangaViewModel.self) var viewModel
+    @Environment(\.modelContext) private var context
     let manga: Manga
     @State private var showFullSynopsis = false
+    @State private var mangaIsAlreadySaved = false
 
     var body: some View {
         ZStack {
@@ -86,17 +90,30 @@ struct MangaDetailView: View {
                     .frame(maxWidth: .infinity, alignment: .center)
 
                     // Botón "Añadir"
-                    Button {
-                        // Acción guardar
-                    } label: {
-                        Label("Añadir", systemImage: "books.vertical")
+                    if mangaIsAlreadySaved {
+                        Label("Guardado", systemImage: "checkmark")
                             .padding()
                             .frame(maxWidth: 300)
-                            .background(.white)
-                            .foregroundColor(.black)
+                            .background(.gray.opacity(0.2))
+                            .foregroundColor(.gray)
                             .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .frame(maxWidth: .infinity, alignment: .center)
+                    } else {
+                        Button {
+                            Task {
+                                await viewModel.saveManga(manga)
+                                mangaIsAlreadySaved = true
+                            }
+                        } label: {
+                            Label("Añadir", systemImage: "books.vertical")
+                                .padding()
+                                .frame(maxWidth: 300)
+                                .background(.white)
+                                .foregroundColor(.black)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                        }
+                        .frame(maxWidth: .infinity, alignment: .center)
                     }
-                    .frame(maxWidth: .infinity, alignment: .center)
 
                     // Botones inferiores
                     HStack(spacing: 16) {
@@ -110,6 +127,14 @@ struct MangaDetailView: View {
                 }
                 .padding(.horizontal)
                 .padding(.vertical, 16)
+            }
+            .task {
+                let mangaID = manga.id
+                let descriptor = FetchDescriptor<MangaDB>(predicate: #Predicate { $0.id == mangaID })
+
+                if let _ = try? context.fetch(descriptor).first {
+                    mangaIsAlreadySaved = true
+                }
             }
         }
     }
@@ -132,5 +157,16 @@ struct MangaDetailView: View {
 }
 
 #Preview {
-    MangaDetailView(manga: .test)
+    let mockViewModel = MangaViewModel()
+    return MangaDetailPreviewWrapper(manga: .test)
+        .environment(mockViewModel)
+}
+
+private struct MangaDetailPreviewWrapper: View {
+    let manga: Manga
+
+    var body: some View {
+        MangaDetailView(manga: manga)
+            .modelContainer(for: MangaDB.self, inMemory: true)
+    }
 }

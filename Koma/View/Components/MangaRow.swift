@@ -35,7 +35,7 @@ struct MangaRow: View {
             }
             Spacer()
             Image(systemName: "chevron.right")
-                .foregroundStyle(.primary)
+                .foregroundStyle(.secondary)
         }
     }
 }

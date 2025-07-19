@@ -5,6 +5,7 @@ struct MangaSavedView: View {
     
     @Environment(MangaViewModel.self) var viewModel
     @State private var savedMangas: [Manga] = []
+    @State private var selectedManga: Manga? = nil
 
     var body: some View {
         NavigationStack {
@@ -26,12 +27,18 @@ struct MangaSavedView: View {
                 }
             }  else {
                 List(savedMangas) { manga in
-                    NavigationLink(destination: MangaDetailView(manga: manga)) {
-                        MangaRow(manga: manga)
-                    }
-                }
+                     MangaRow(manga: manga)
+                         .contentShape(Rectangle()) // permite que toda el área sea tocable
+                         .onTapGesture {
+                             selectedManga = manga
+                         }
+                         .listRowSeparator(.visible) // opcional: muestra la línea separadora
+                 }
                 .listStyle(.plain)
                 .navigationTitle("Guardados")
+                .navigationDestination(item: $selectedManga) { manga in
+                    MangaDetailView(manga: manga)
+                }
             }
         }
         .task {
@@ -45,4 +52,3 @@ struct MangaSavedView: View {
     return MangaSavedView()
         .environment(testViewModel)
 }
-

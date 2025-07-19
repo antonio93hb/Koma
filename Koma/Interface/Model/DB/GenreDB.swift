@@ -11,6 +11,10 @@ import SwiftData
 final class GenreDB {
     var id: String
     var genre: String
+    
+    // 🔁 Relación inversa con MangaDB
+    @Relationship(inverse: \MangaDB.genres)
+    var mangas: [MangaDB] = []
 
     init(id: String, genre: String) {
         self.id = id

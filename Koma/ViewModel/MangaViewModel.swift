@@ -74,6 +74,16 @@ extension MangaViewModel {
         await fetchMangas()
     }
     
+    func saveManga(_ manga: Manga) async {
+        guard let context else { return }
+        let mangaDB = manga.toMangaDB()
+        do {
+            context.insert(mangaDB)
+            try context.save()
+        } catch {
+            print("Error al guardar el manga: \(error)")
+        }
+    }
     func getSavedMangas() async -> [Manga] {
         guard let context = context else { return [] }
         let descriptor = FetchDescriptor<MangaDB>(predicate: #Predicate { $0.isSaved == true })
