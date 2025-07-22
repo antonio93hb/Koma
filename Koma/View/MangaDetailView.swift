@@ -128,13 +128,10 @@ struct MangaDetailView: View {
                 .padding(.horizontal)
                 .padding(.vertical, 16)
             }
-            .task {
-                let mangaID = manga.id
-                let descriptor = FetchDescriptor<MangaDB>(predicate: #Predicate { $0.id == mangaID })
-
-                if let _ = try? context.fetch(descriptor).first {
-                    mangaIsAlreadySaved = true
-                }
+        }
+        .onAppear {
+            Task {
+                mangaIsAlreadySaved = await viewModel.isMangaSaved(manga.id)
             }
         }
     }

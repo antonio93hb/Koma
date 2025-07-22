@@ -45,6 +45,7 @@ final class MangaViewModel {
 // MARK: Métodos Públicos
 extension MangaViewModel {
     
+    /// Carga los mangas y los mejores mangas si aún no se han cargado.
     func loadIfNeeded() async {
         guard !hasLoaded else { return }
         hasLoaded = true
@@ -52,6 +53,7 @@ extension MangaViewModel {
         await getBestMangas()
     }
     
+    /// Obtiene los mangas mejor valorados desde la red.
     func getBestMangas() async {
         guard !isLoadingBest else { return }
         defer { isLoadingBest = false }
@@ -65,6 +67,7 @@ extension MangaViewModel {
         }
     }
     
+    /// Carga más mangas si el usuario ha llegado al final de la lista.
     func loadMoreIfNeeded(current manga: Manga) async {
         guard let index = mangas.firstIndex(where: { $0.id == manga.id }) else { return }
         
@@ -74,6 +77,7 @@ extension MangaViewModel {
         await fetchMangas()
     }
     
+    /// Guarda un manga en la base de datos local usando SwiftData.
     func saveManga(_ manga: Manga) async {
         guard let context else { return }
         let mangaDB = manga.toMangaDB()
@@ -84,6 +88,7 @@ extension MangaViewModel {
             print("Error al guardar el manga: \(error)")
         }
     }
+    /// Obtiene todos los mangas guardados desde la base de datos local.
     func getSavedMangas() async -> [Manga] {
         guard let context = context else { return [] }
         let descriptor = FetchDescriptor<MangaDB>(predicate: #Predicate { $0.isSaved == true })
@@ -95,12 +100,59 @@ extension MangaViewModel {
             return []
         }
     }
+    
+    /// Elimina un manga guardado de la base de datos local.
+    func unSaveManga(_ manga: Manga) async {
+        guard let context else { return }
+        let id = manga.id
+
+        let fetchDescriptor = FetchDescriptor<MangaDB>(
+            predicate: #Predicate { $0.id == id }
+        )
+
+        do {
+            if let mangaDB = try context.fetch(fetchDescriptor).first {
+                context.delete(mangaDB)
+                try context.save()
+            }
+        } catch {
+            print("Error al eliminar manga: \(error)")
+        }
+    }
+    
+    /// Devuelve un manga guardado con el ID proporcionado, si existe.
+    func getMangaById(_ id: Int) async -> Manga? {
+        guard let context else { return nil }
+        let descriptor = FetchDescriptor<MangaDB>(predicate: #Predicate { $0.id == id })
+        do {
+            if let mangaDB = try context.fetch(descriptor).first {
+                return mangaDB.toManga
+            }
+            return nil
+        } catch {
+            print("Error al obtener el manga por ID: \(error)")
+            return nil
+        }
+    }
+    
+    /// Verifica si un manga con el ID dado ya está guardado en la base de datos.
+    func isMangaSaved(_ id: Int) async -> Bool {
+        guard let context else { return false }
+        let descriptor = FetchDescriptor<MangaDB>(predicate: #Predicate { $0.id == id })
+        do {
+            return try context.fetchCount(descriptor) > 0
+        } catch {
+            print("Error al verificar si el manga está guardado: \(error)")
+            return false
+        }
+    }
 }
 
 // MARK: Métodos Privados
 
 private extension MangaViewModel {
     
+    /// Solicita los mangas desde la red con soporte de paginación y actualiza el listado.
     private func fetchMangas() async {
         guard !isLoading else { return }
         defer { isLoading = false }

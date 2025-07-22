@@ -6,7 +6,7 @@ struct MangaSavedView: View {
     @Environment(MangaViewModel.self) var viewModel
     @State private var savedMangas: [Manga] = []
     @State private var selectedManga: Manga? = nil
-
+    
     var body: some View {
         NavigationStack {
             if savedMangas.isEmpty {
@@ -26,14 +26,25 @@ struct MangaSavedView: View {
                         .padding(.horizontal, 30)
                 }
             }  else {
-                List(savedMangas) { manga in
-                     MangaRow(manga: manga)
-                         .contentShape(Rectangle()) // permite que toda el área sea tocable
-                         .onTapGesture {
-                             selectedManga = manga
-                         }
-                         .listRowSeparator(.visible) // opcional: muestra la línea separadora
-                 }
+                List {
+                    ForEach(savedMangas, id: \.id) { manga in
+                        MangaRow(manga: manga)
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                selectedManga = manga
+                            }
+                            .listRowSeparator(.visible)
+                    }
+                    .onDelete { indexSet in
+                        for index in indexSet {
+                            let mangaToRemove = savedMangas[index]
+                            Task {
+                                await viewModel.unSaveManga(mangaToRemove)
+                                savedMangas = await viewModel.getSavedMangas()
+                            }
+                        }
+                    }
+                }
                 .listStyle(.plain)
                 .navigationTitle("Guardados")
                 .navigationDestination(item: $selectedManga) { manga in
