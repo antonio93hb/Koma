@@ -89,15 +89,31 @@ struct MangaDetailView: View {
                     .foregroundStyle(.gray)
                     .frame(maxWidth: .infinity, alignment: .center)
 
-                    // Botón "Añadir"
+                    // Botón "Añadir" o gestión de guardado
                     if mangaIsAlreadySaved {
-                        Label("Guardado", systemImage: "checkmark")
-                            .padding()
-                            .frame(maxWidth: 300)
-                            .background(.gray.opacity(0.2))
-                            .foregroundColor(.gray)
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
-                            .frame(maxWidth: .infinity, alignment: .center)
+                        HStack(spacing: 12) {
+                            Label("Guardado", systemImage: "checkmark")
+                                .padding()
+                                .frame(maxWidth: 200)
+                                .background(.gray.opacity(0.2))
+                                .foregroundColor(.gray)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+
+                            Button {
+                                Task {
+                                    await viewModel.unSaveManga(manga)
+                                    mangaIsAlreadySaved = false
+                                }
+                            } label: {
+                                Image(systemName: "trash")
+                                    .padding()
+                                    .frame(width: 48, height: 48)
+                                    .background(.red.opacity(0.2))
+                                    .foregroundColor(.red)
+                                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                            }
+                        }
+                        .frame(maxWidth: .infinity, alignment: .center)
                     } else {
                         Button {
                             Task {
