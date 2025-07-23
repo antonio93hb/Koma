@@ -9,7 +9,10 @@ import SwiftUI
 
 struct MangaRow: View {
     @Environment(\.colorScheme) var colorScheme
+    @Environment(MangaViewModel.self) var viewModel
     
+    @State private var isSaved = false
+
     let manga: Manga
     var showSavedIcon = false
     
@@ -34,9 +37,21 @@ struct MangaRow: View {
                 }
             }
             Spacer()
+            if showSavedIcon && isSaved {
+                Image(systemName: "heart.fill")
+                    .foregroundStyle(.red)
+            }
+            
             Image(systemName: "chevron.right")
                 .foregroundStyle(.secondary)
         }
+        .onAppear {
+                    if showSavedIcon {
+                        Task {
+                            isSaved = await viewModel.isMangaSaved(manga.id)
+                        }
+                    }
+                }
     }
 }
 
