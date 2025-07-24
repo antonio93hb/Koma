@@ -125,9 +125,14 @@ struct MangaDetailView: View {
 
                             Button {
                                 Task {
-                                    await viewModel.unSaveManga(manga)
-                                    mangaIsAlreadySaved = false
-                                    ownedVolumes = nil
+                                    do {
+                                        try await viewModel.unSaveManga(manga)
+                                        mangaIsAlreadySaved = false
+                                        ownedVolumes = nil
+                                        activeAlert = .deleted
+                                    } catch {
+                                        activeAlert = .failedToDelete
+                                    }
                                 }
                             } label: {
                                 Image(systemName: "trash")
@@ -142,8 +147,13 @@ struct MangaDetailView: View {
                     } else {
                         Button {
                             Task {
-                                await viewModel.saveManga(manga)
-                                mangaIsAlreadySaved = true
+                                do {
+                                    try await viewModel.saveManga(manga)
+                                    mangaIsAlreadySaved = true
+                                    activeAlert = .saved
+                                } catch {
+                                    activeAlert = .failedToSave
+                                }
                             }
                         } label: {
                             Label("Añadir", systemImage: "books.vertical")
@@ -158,9 +168,47 @@ struct MangaDetailView: View {
 
                     // Botones inferiores
                     HStack(spacing: 16) {
-                        bottomButton(title: "Autores", systemImage: "person.2")
-                        bottomButton(title: "Géneros", systemImage: "square.stack.3d.up")
-                        bottomButton(title: "Ver", systemImage: "book")
+                        Button {
+                            // Acción para Autores
+                        } label: {
+                            VStack {
+                                Image(systemName: "person.2")
+                                Text("Autores")
+                            }
+                            .padding()
+                            .frame(maxWidth: 100)
+                            .background(.white)
+                            .foregroundColor(.black)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                        }
+
+                        Button {
+                            // Acción para Géneros
+                        } label: {
+                            VStack {
+                                Image(systemName: "square.stack.3d.up")
+                                Text("Géneros")
+                            }
+                            .padding()
+                            .frame(maxWidth: 100)
+                            .background(.white)
+                            .foregroundColor(.black)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                        }
+
+                        Button {
+                            // Acción para Ver
+                        } label: {
+                            VStack {
+                                Image(systemName: "book")
+                                Text("Ver")
+                            }
+                            .padding()
+                            .frame(maxWidth: 100)
+                            .background(.white)
+                            .foregroundColor(.black)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                        }
                     }
                     .padding(.top)
                     .frame(maxWidth: .infinity, alignment: .center)
@@ -172,17 +220,18 @@ struct MangaDetailView: View {
                     TextField("Número de tomos", text: $ownedVolumesInput)
                         .keyboardType(.numberPad)
                     Button("Guardar") {
-                        if let owned = Int(ownedVolumesInput),
-                           owned >= 0,
-                           let total = manga.volumes,
-                           owned <= total {
+                        if let total = manga.volumes {
                             Task {
-                                await viewModel.updateOwnedVolumes(for: manga.id, to: owned)
-                                ownedVolumes = owned
-                                activeAlert = .success
+                                let success = await viewModel.handleOwnedVolumeUpdate(for: manga.id, input: ownedVolumesInput, max: total)
+                                if success {
+                                    ownedVolumes = Int(ownedVolumesInput)
+                                    activeAlert = .successVolumes
+                                } else {
+                                    activeAlert = .invalidInput
+                                }
                             }
                         } else {
-                            activeAlert = .invalid
+                            activeAlert = .invalidInput
                         }
                     }
                     Button("Cancelar", role: .cancel) { }
@@ -192,25 +241,9 @@ struct MangaDetailView: View {
         }
         .onAppear {
             Task {
-                mangaIsAlreadySaved = await viewModel.isMangaSaved(manga.id)
+                mangaIsAlreadySaved = try await viewModel.isMangaSaved(manga.id)
                 ownedVolumes = await viewModel.getOwnedVolumes(for: manga.id)
             }
-        }
-    }
-
-    private func bottomButton(title: String, systemImage: String) -> some View {
-        Button {
-            // Acción
-        } label: {
-            VStack {
-                Image(systemName: systemImage)
-                Text(title)
-            }
-            .padding()
-            .frame(maxWidth: 100)
-            .background(.white)
-            .foregroundColor(.black)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
         }
     }
 }

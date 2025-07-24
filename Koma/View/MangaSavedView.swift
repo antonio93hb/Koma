@@ -39,7 +39,7 @@ struct MangaSavedView: View {
                         for index in indexSet {
                             let mangaToRemove = savedMangas[index]
                             Task {
-                                await viewModel.unSaveManga(mangaToRemove)
+                                try await viewModel.unSaveManga(mangaToRemove)
                                 savedMangas = await viewModel.getSavedMangas()
                             }
                         }

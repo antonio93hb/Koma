@@ -44,6 +44,20 @@ final class MangaViewModel {
 
 // MARK: Métodos Públicos
 extension MangaViewModel {
+    /// Valida e intenta actualizar el número de tomos que posee el usuario. Devuelve true si se actualizó correctamente.
+    func handleOwnedVolumeUpdate(for mangaID: Int, input: String, max: Int) async -> Bool {
+        guard let value = Int(input), value >= 0, value <= max else {
+            return false
+        }
+
+        do {
+            try await updateOwnedVolumes(for: mangaID, to: value)
+            return true
+        } catch {
+            errorMessage = MangaError.unknown(error).errorDescription
+            return false
+        }
+    }
     
     /// Carga los mangas y los mejores mangas si aún no se han cargado.
     func loadIfNeeded() async {
@@ -78,14 +92,14 @@ extension MangaViewModel {
     }
     
     /// Guarda un manga en la base de datos local usando SwiftData.
-    func saveManga(_ manga: Manga) async {
+    func saveManga(_ manga: Manga) async throws {
         guard let context else { return }
         let mangaDB = manga.toMangaDB()
         do {
             context.insert(mangaDB)
             try context.save()
         } catch {
-            errorMessage = MangaError.unknown(error).errorDescription
+            throw MangaError.unknown(error)
         }
     }
     /// Obtiene todos los mangas guardados desde la base de datos local.
@@ -102,7 +116,7 @@ extension MangaViewModel {
     }
     
     /// Elimina un manga guardado de la base de datos local.
-    func unSaveManga(_ manga: Manga) async {
+    func unSaveManga(_ manga: Manga) async throws {
         guard let context else { return }
         let id = manga.id
 
@@ -116,12 +130,12 @@ extension MangaViewModel {
                 try context.save()
             }
         } catch {
-            errorMessage = MangaError.unknown(error).errorDescription
+            throw MangaError.unknown(error)
         }
     }
     
     /// Devuelve un manga guardado con el ID proporcionado, si existe.
-    func getMangaById(_ id: Int) async -> Manga? {
+    func getMangaById(_ id: Int) async throws -> Manga? {
         guard let context else { return nil }
         let descriptor = FetchDescriptor<MangaDB>(predicate: #Predicate { $0.id == id })
         do {
@@ -130,41 +144,49 @@ extension MangaViewModel {
             }
             return nil
         } catch {
-            print("Error al obtener el manga por ID: \(error)")
-            return nil
+            throw MangaError.unknown(error)
         }
     }
     
     /// Verifica si un manga con el ID dado ya está guardado en la base de datos.
-    func isMangaSaved(_ id: Int) async -> Bool {
+    func isMangaSaved(_ id: Int) async throws -> Bool {
         guard let context else { return false }
         let descriptor = FetchDescriptor<MangaDB>(predicate: #Predicate { $0.id == id })
         do {
             return try context.fetchCount(descriptor) > 0
         } catch {
-            print("Error al verificar si el manga está guardado: \(error)")
-            return false
+            throw MangaError.unknown(error)
         }
     }
 
     /// Actualiza el número de tomos que posee el usuario para un manga guardado.
-    func updateOwnedVolumes(for mangaID: Int, to newValue: Int) async {
-        guard let context else { return }
-        let descriptor = FetchDescriptor<MangaDB>(predicate: #Predicate { $0.id == mangaID })
+    func updateOwnedVolumes(for mangaID: Int, to newValue: Int) async throws {
+        guard let context else { throw MangaError.invalidData }
+
+        let descriptor = FetchDescriptor<MangaDB>(predicate: #Predicate<MangaDB> { $0.id == mangaID })
+
         do {
             if let mangaDB = try context.fetch(descriptor).first {
+                if newValue < 0 {
+                    throw MangaError.custom("El número de tomos no puede ser negativo.")
+                }
+
+                if let totalVolumes = mangaDB.volumes, newValue > totalVolumes {
+                    throw MangaError.custom("No puedes tener más tomos que los publicados.")
+                }
+
                 mangaDB.ownedVolumes = newValue
                 try context.save()
             }
         } catch {
-            errorMessage = MangaError.unknown(error).errorDescription
+            throw MangaError.unknown(error)
         }
     }
     
     /// Devuelve el número de tomos que tiene un manga
     func getOwnedVolumes(for id: Int) async -> Int? {
         guard let context else { return nil }
-        let descriptor = FetchDescriptor<MangaDB>(predicate: #Predicate { $0.id == id })
+        let descriptor = FetchDescriptor<MangaDB>(predicate: #Predicate<MangaDB> { $0.id == id })
         do {
             if let mangaDB = try context.fetch(descriptor).first {
                 return mangaDB.ownedVolumes

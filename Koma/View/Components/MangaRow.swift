@@ -48,7 +48,7 @@ struct MangaRow: View {
         .onAppear {
                     if showSavedIcon {
                         Task {
-                            isSaved = await viewModel.isMangaSaved(manga.id)
+                            isSaved = try await viewModel.isMangaSaved(manga.id)
                         }
                     }
                 }
