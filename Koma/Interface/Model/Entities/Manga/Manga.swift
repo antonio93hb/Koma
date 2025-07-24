@@ -22,6 +22,7 @@ struct Manga: Identifiable, Hashable {
     let demographics: [Demographic]
     let themes: [Theme]
     var isSaved = false
+    var ownedVolumes: Int?
 }
 
 extension Manga: Equatable {
@@ -51,7 +52,8 @@ extension Manga {
             genres: genres.map { $0.toGenreDB() },
             demographics: demographics.map { $0.toDemographicDB() },
             themes: themes.map { $0.toThemeDB() },
-            isSaved: true
+            isSaved: true,
+            ownedVolumes: ownedVolumes 
         )
     }
 }

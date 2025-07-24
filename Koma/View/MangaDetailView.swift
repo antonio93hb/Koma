@@ -4,6 +4,7 @@
 //
 //  Created by Antonio Hernández Barbadilla on 13/6/25.
 //
+
 import SwiftUI
 import SwiftData
 
@@ -14,6 +15,10 @@ struct MangaDetailView: View {
     let manga: Manga
     @State private var showFullSynopsis = false
     @State private var mangaIsAlreadySaved = false
+    @State private var showAlert = false
+    @State private var ownedVolumesInput = ""
+    @State private var ownedVolumes: Int? = nil
+    @State private var activeAlert: AppAlert?
 
     var body: some View {
         ZStack {
@@ -76,13 +81,21 @@ struct MangaDetailView: View {
                         .padding(.horizontal)
                     }
 
-                    // Fecha y capítulos
-                    HStack(spacing: 16) {
+                    // Fecha, capítulos y tomos con iconos
+                    VStack(spacing: 4) {
                         if let startDate = manga.startDate {
-                            Text(startDate.formatted(date: .abbreviated, time: .omitted))
+                            Label(startDate.formatted(date: .complete, time: .omitted), systemImage: "calendar")
                         }
-                        if let chapters = manga.chapters {
-                            Text("Capítulos: \(chapters)")
+                        HStack(spacing: 16) {
+                            if let chapters = manga.chapters {
+                                Label("Capítulos: \(chapters)", systemImage: "doc.plaintext")
+                            }
+                            if let volumes = manga.volumes {
+                                Label("Tomos: \(volumes)", systemImage: "books.vertical")
+                            }
+                        }
+                        if let owned = ownedVolumes, let total = manga.volumes {
+                            Label("Colección: \(owned) / \(total)", systemImage: "archivebox")
                         }
                     }
                     .font(.subheadline)
@@ -100,9 +113,21 @@ struct MangaDetailView: View {
                                 .clipShape(RoundedRectangle(cornerRadius: 12))
 
                             Button {
+                                showAlert = true
+                            } label: {
+                                Image(systemName: "books.vertical")
+                                    .padding()
+                                    .frame(width: 48, height: 48)
+                                    .background(.blue.opacity(0.2))
+                                    .foregroundColor(.blue)
+                                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                            }
+
+                            Button {
                                 Task {
                                     await viewModel.unSaveManga(manga)
                                     mangaIsAlreadySaved = false
+                                    ownedVolumes = nil
                                 }
                             } label: {
                                 Image(systemName: "trash")
@@ -143,11 +168,32 @@ struct MangaDetailView: View {
                 }
                 .padding(.horizontal)
                 .padding(.vertical, 16)
+                .alert("Modificar tomos", isPresented: $showAlert, actions: {
+                    TextField("Número de tomos", text: $ownedVolumesInput)
+                        .keyboardType(.numberPad)
+                    Button("Guardar") {
+                        if let owned = Int(ownedVolumesInput),
+                           owned >= 0,
+                           let total = manga.volumes,
+                           owned <= total {
+                            Task {
+                                await viewModel.updateOwnedVolumes(for: manga.id, to: owned)
+                                ownedVolumes = owned
+                                activeAlert = .success
+                            }
+                        } else {
+                            activeAlert = .invalid
+                        }
+                    }
+                    Button("Cancelar", role: .cancel) { }
+                })
+                .alert(item: $activeAlert) { $0.alert }
             }
         }
         .onAppear {
             Task {
                 mangaIsAlreadySaved = await viewModel.isMangaSaved(manga.id)
+                ownedVolumes = await viewModel.getOwnedVolumes(for: manga.id)
             }
         }
     }

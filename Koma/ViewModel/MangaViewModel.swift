@@ -85,7 +85,7 @@ extension MangaViewModel {
             context.insert(mangaDB)
             try context.save()
         } catch {
-            print("Error al guardar el manga: \(error)")
+            errorMessage = MangaError.unknown(error).errorDescription
         }
     }
     /// Obtiene todos los mangas guardados desde la base de datos local.
@@ -116,7 +116,7 @@ extension MangaViewModel {
                 try context.save()
             }
         } catch {
-            print("Error al eliminar manga: \(error)")
+            errorMessage = MangaError.unknown(error).errorDescription
         }
     }
     
@@ -144,6 +144,35 @@ extension MangaViewModel {
         } catch {
             print("Error al verificar si el manga está guardado: \(error)")
             return false
+        }
+    }
+
+    /// Actualiza el número de tomos que posee el usuario para un manga guardado.
+    func updateOwnedVolumes(for mangaID: Int, to newValue: Int) async {
+        guard let context else { return }
+        let descriptor = FetchDescriptor<MangaDB>(predicate: #Predicate { $0.id == mangaID })
+        do {
+            if let mangaDB = try context.fetch(descriptor).first {
+                mangaDB.ownedVolumes = newValue
+                try context.save()
+            }
+        } catch {
+            errorMessage = MangaError.unknown(error).errorDescription
+        }
+    }
+    
+    /// Devuelve el número de tomos que tiene un manga
+    func getOwnedVolumes(for id: Int) async -> Int? {
+        guard let context else { return nil }
+        let descriptor = FetchDescriptor<MangaDB>(predicate: #Predicate { $0.id == id })
+        do {
+            if let mangaDB = try context.fetch(descriptor).first {
+                return mangaDB.ownedVolumes
+            }
+            return nil
+        } catch {
+            errorMessage = MangaError.unknown(error).errorDescription
+            return nil
         }
     }
 }
