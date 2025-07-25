@@ -52,6 +52,8 @@ struct MangaDetailView: View {
                             .font(.title)
                             .bold()
                             .multilineTextAlignment(.center)
+                            .lineLimit(nil)
+                            .frame(maxWidth: UIScreen.main.bounds.width * 0.9)
 
                         Text(manga.status)
                             .font(.headline)
@@ -96,6 +98,10 @@ struct MangaDetailView: View {
                         }
                         if let owned = ownedVolumes, let total = manga.volumes {
                             Label("Colección: \(owned) / \(total)", systemImage: "archivebox")
+                            if owned == total {
+                                Label("¡Colección completa!", systemImage: "checkmark.seal")
+                                    .foregroundColor(.green)
+                            }
                         }
                     }
                     .font(.subheadline)

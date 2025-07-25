@@ -42,6 +42,15 @@ struct MangaRow: View {
                         .font(.caption)
                         .foregroundStyle(.gray)
                 }
+                if let owned = manga.ownedVolumes, let total = manga.volumes, owned == total {
+                    Label {
+                        Text("¡Colección completa!")
+                    } icon: {
+                        Image(systemName: "checkmark.circle.fill")
+                    }
+                    .font(.caption)
+                    .foregroundStyle(.green)
+                }
             }
             Spacer()
             if showSavedIcon && isSaved {
