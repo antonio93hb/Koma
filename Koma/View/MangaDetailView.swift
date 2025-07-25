@@ -19,6 +19,7 @@ struct MangaDetailView: View {
     @State private var ownedVolumesInput = ""
     @State private var ownedVolumes: Int? = nil
     @State private var activeAlert: AppAlert?
+    @State private var showMoreInfoSheet = false
 
     var body: some View {
         ZStack {
@@ -177,51 +178,13 @@ struct MangaDetailView: View {
                     }
 
                     // Botones inferiores
-                    HStack(spacing: 16) {
-                        Button {
-                            // Acción para Autores
-                        } label: {
-                            VStack {
-                                Image(systemName: "person.2")
-                                Text("Autores")
-                            }
-                            .padding()
-                            .frame(maxWidth: 100)
-                            .background(.white)
-                            .foregroundColor(.black)
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
-                        }
-
-                        Button {
-                            // Acción para Géneros
-                        } label: {
-                            VStack {
-                                Image(systemName: "square.stack.3d.up")
-                                Text("Géneros")
-                            }
-                            .padding()
-                            .frame(maxWidth: 100)
-                            .background(.white)
-                            .foregroundColor(.black)
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
-                        }
-
-                        Button {
-                            // Acción para Ver
-                        } label: {
-                            VStack {
-                                Image(systemName: "book")
-                                Text("Ver")
-                            }
-                            .padding()
-                            .frame(maxWidth: 100)
-                            .background(.white)
-                            .foregroundColor(.black)
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
-                        }
+                    Button {
+                        showMoreInfoSheet = true
+                    } label: {
+                        Label("Más info", systemImage: "info.circle")
+                            .frame(maxWidth: .infinity)
                     }
-                    .padding(.top)
-                    .frame(maxWidth: .infinity, alignment: .center)
+                    .buttonStyle(.bordered)
 
                 }
                 .padding(.horizontal)
@@ -248,6 +211,14 @@ struct MangaDetailView: View {
                     Button("Cancelar", role: .cancel) { }
                 })
                 .alert(item: $activeAlert) { $0.alert }
+            }
+            .sheet(isPresented: $showMoreInfoSheet) {
+                MoreInfoSheetView(
+                    authors: manga.authors,
+                    genres: manga.genres,
+                    themes: manga.themes,
+                    demographics: manga.demographics
+                )
             }
         }
         .onAppear {
