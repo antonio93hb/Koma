@@ -12,6 +12,7 @@ struct MoreInfoSheetView: View {
     let genres: [Genre]
     let themes: [Theme]
     let demographics: [Demographic]
+    let background: String?
 
     var body: some View {
         NavigationView {
@@ -19,13 +20,14 @@ struct MoreInfoSheetView: View {
                 if !authors.isEmpty {
                     Section(header: Text("Autores")) {
                         ForEach(authors, id: \.id) { author in
-                            VStack(alignment: .leading) {
+                            VStack(alignment: .leading, spacing: 4) {
                                 Text(author.fullName)
                                     .font(.headline)
                                 Text(author.role)
                                     .font(.subheadline)
                                     .foregroundColor(.secondary)
                             }
+                            .padding(.vertical, 4)
                         }
                     }
                 }
@@ -51,6 +53,15 @@ struct MoreInfoSheetView: View {
                         ForEach(themes, id: \.id) { theme in
                             Text(theme.name)
                         }
+                    }
+                }
+
+                if let background, !background.isEmpty {
+                    Section(header: Text("Información adicional")) {
+                        Text(background)
+                            .font(.body)
+                            .multilineTextAlignment(.leading)
+                            .padding(.vertical, 4)
                     }
                 }
             }

@@ -8,6 +8,7 @@
 import SwiftUI
 import SwiftData
 
+// MARK: - MangaDetailView
 struct MangaDetailView: View {
 
     @Environment(MangaViewModel.self) var viewModel
@@ -24,167 +25,35 @@ struct MangaDetailView: View {
     var body: some View {
         ZStack {
             // 📸 Fondo desenfocado
-            if let url = URL(string: manga.imageURL) {
-                AsyncImage(url: url) { phase in
-                    switch phase {
-                    case .success(let image):
-                        image
-                            .resizable()
-                            .scaledToFill()
-                            .blur(radius: 40)
-                            .opacity(0.3)
-                            .ignoresSafeArea()
-                    default:
-                        EmptyView()
-                    }
-                }
-            }
+            BlurredBackground(imageURL: manga.imageURL)
 
             ScrollView {
                 VStack(spacing: 24) {
 
                     // Imagen, título y estado (centrados)
-                    VStack(spacing: 12) {
-                        MangaImg(manga: manga)
-                            .frame(width: 200, height: 300)
-                            .shadow(radius: 8)
-
-                        Text(manga.title)
-                            .font(.title)
-                            .bold()
-                            .multilineTextAlignment(.center)
-                            .lineLimit(nil)
-                            .frame(maxWidth: UIScreen.main.bounds.width * 0.9)
-
-                        Text(manga.status)
-                            .font(.headline)
-                            .foregroundStyle(.gray)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .center)
+                    MangaHeaderView(manga: manga)
 
                     // Sinopsis
                     if let synopsis = manga.synopsis {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(showFullSynopsis ? synopsis : String(synopsis.prefix(150)) + "...")
-                                .font(.body)
-                                .multilineTextAlignment(.leading)
-                                .lineLimit(nil)
-                                .frame(maxWidth: UIScreen.main.bounds.width * 0.9, alignment: .leading)
-
-                            if synopsis.count > 150 {
-                                Button(showFullSynopsis ? "menos" : "más") {
-                                    withAnimation {
-                                        showFullSynopsis.toggle()
-                                    }
-                                }
-                                .font(.subheadline)
-                                .foregroundStyle(.blue)
-                            }
-                        }
-                        .padding(.horizontal)
+                        SynopsisView(synopsis: synopsis)
                     }
 
-                    // Fecha, capítulos y tomos con iconos
-                    VStack(spacing: 4) {
-                        if let startDate = manga.startDate {
-                            Label(startDate.formatted(date: .complete, time: .omitted), systemImage: "calendar")
-                        }
-                        HStack(spacing: 16) {
-                            if let chapters = manga.chapters {
-                                Label("Capítulos: \(chapters)", systemImage: "doc.plaintext")
-                            }
-                            if let volumes = manga.volumes {
-                                Label("Tomos: \(volumes)", systemImage: "books.vertical")
-                            }
-                        }
-                        if let owned = ownedVolumes, let total = manga.volumes {
-                            Label("Colección: \(owned) / \(total)", systemImage: "archivebox")
-                            if owned == total {
-                                Label("¡Colección completa!", systemImage: "checkmark.seal")
-                                    .foregroundColor(.green)
-                            }
-                        }
-                    }
-                    .font(.subheadline)
-                    .foregroundStyle(.gray)
-                    .frame(maxWidth: .infinity, alignment: .center)
+                    // Fecha, capítulos, tomos, progreso y puntuación encapsulados
+                    InfoSectionView(manga: manga, ownedVolumes: ownedVolumes)
 
-                    // Botón "Añadir" o gestión de guardado
-                    if mangaIsAlreadySaved {
-                        HStack(spacing: 12) {
-                            Label("Guardado", systemImage: "checkmark")
-                                .padding()
-                                .frame(maxWidth: 200)
-                                .background(.gray.opacity(0.2))
-                                .foregroundColor(.gray)
-                                .clipShape(RoundedRectangle(cornerRadius: 12))
-
-                            if manga.volumes != nil {
-                                Button {
-                                    showAlert = true
-                                } label: {
-                                    Image(systemName: "books.vertical")
-                                        .padding()
-                                        .frame(width: 48, height: 48)
-                                        .background(.blue.opacity(0.2))
-                                        .foregroundColor(.blue)
-                                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                                }
-                            }
-
-                            Button {
-                                Task {
-                                    do {
-                                        try await viewModel.unSaveManga(manga)
-                                        mangaIsAlreadySaved = false
-                                        ownedVolumes = nil
-                                        activeAlert = .deleted
-                                        await viewModel.refreshSavedMangas()
-                                    } catch {
-                                        activeAlert = .failedToDelete
-                                    }
-                                }
-                            } label: {
-                                Image(systemName: "trash")
-                                    .padding()
-                                    .frame(width: 48, height: 48)
-                                    .background(.red.opacity(0.2))
-                                    .foregroundColor(.red)
-                                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                            }
-                        }
-                        .frame(maxWidth: .infinity, alignment: .center)
-                    } else {
-                        Button {
-                            Task {
-                                do {
-                                    try await viewModel.saveManga(manga)
-                                    await viewModel.refreshSavedMangas()
-                                    mangaIsAlreadySaved = true
-                                    activeAlert = .saved
-                                } catch {
-                                    activeAlert = .failedToSave
-                                }
-                            }
-                        } label: {
-                            Label("Añadir", systemImage: "books.vertical")
-                                .padding()
-                                .frame(maxWidth: 300)
-                                .background(.white)
-                                .foregroundColor(.black)
-                                .clipShape(RoundedRectangle(cornerRadius: 12))
-                        }
-                        .frame(maxWidth: .infinity, alignment: .center)
-                    }
+                    // Botón "Añadir" o gestión de guardado (refactorizado)
+                    SaveButtonsView(
+                        manga: manga,
+                        mangaIsAlreadySaved: $mangaIsAlreadySaved,
+                        ownedVolumes: $ownedVolumes,
+                        ownedVolumesInput: $ownedVolumesInput,
+                        showAlert: $showAlert,
+                        activeAlert: $activeAlert,
+                        viewModel: viewModel
+                    )
 
                     // Botones inferiores
-                    Button {
-                        showMoreInfoSheet = true
-                    } label: {
-                        Label("Más info", systemImage: "info.circle")
-                            .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.bordered)
+                    MoreInfoButtonView(showMoreInfoSheet: $showMoreInfoSheet)
 
                 }
                 .padding(.horizontal)
@@ -217,7 +86,8 @@ struct MangaDetailView: View {
                     authors: manga.authors,
                     genres: manga.genres,
                     themes: manga.themes,
-                    demographics: manga.demographics
+                    demographics: manga.demographics,
+                    background: manga.background
                 )
             }
         }
@@ -228,8 +98,233 @@ struct MangaDetailView: View {
             }
         }
     }
+
+    // MARK: - MangaHeaderView
+    struct MangaHeaderView: View {
+        let manga: Manga
+
+        var body: some View {
+            VStack(spacing: 12) {
+                MangaImg(manga: manga)
+                    .frame(width: 200, height: 300)
+                    .shadow(radius: 8)
+
+                Text(manga.title)
+                    .font(.title)
+                    .bold()
+                    .multilineTextAlignment(.center)
+                    .lineLimit(nil)
+                    .frame(maxWidth: UIScreen.main.bounds.width * 0.9)
+
+                Text(manga.status)
+                    .font(.headline)
+                    .foregroundStyle(.gray)
+            }
+            .frame(maxWidth: .infinity, alignment: .center)
+        }
+    }
+    // MARK: - SynopsisView
+    @ViewBuilder
+    private func SynopsisView(synopsis: String) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(showFullSynopsis ? synopsis : String(synopsis.prefix(150)) + "...")
+                .font(.body)
+                .multilineTextAlignment(.leading)
+                .lineLimit(nil)
+                .frame(maxWidth: UIScreen.main.bounds.width * 0.9, alignment: .leading)
+
+            if synopsis.count > 150 {
+                Button(showFullSynopsis ? "menos" : "más") {
+                    withAnimation {
+                        showFullSynopsis.toggle()
+                    }
+                }
+                .font(.subheadline)
+                .foregroundStyle(.blue)
+            }
+        }
+        .padding(.horizontal)
+    }
 }
 
+extension MangaDetailView {
+    // MARK: - InfoSectionView
+    private struct InfoSectionView: View {
+        let manga: Manga
+        let ownedVolumes: Int?
+        @Environment(\.colorScheme) private var colorScheme
+
+        var body: some View {
+            VStack(spacing: 4) {
+                if let start = manga.startDate {
+                    if let end = manga.endDate {
+                        Label("Finalizado el \(end.formatted(date: .long, time: .omitted))", systemImage: "calendar")
+                            .foregroundColor(.red)
+                    } else {
+                        Label("En emisión desde \(start.formatted(date: .long, time: .omitted))", systemImage: "calendar")
+                            .foregroundColor(.green)
+                    }
+                }
+
+                HStack(spacing: 16) {
+                    if let chapters = manga.chapters {
+                        Label("Capítulos: \(chapters)", systemImage: "doc.plaintext")
+                    }
+                    if let volumes = manga.volumes {
+                        Label("Tomos: \(volumes)", systemImage: "books.vertical")
+                    }
+                }
+
+                if let owned = ownedVolumes, let total = manga.volumes {
+                    VStack(spacing: 4) {
+                        ProgressView(value: Float(owned), total: Float(total))
+                            .progressViewStyle(LinearProgressViewStyle(tint: .blue))
+                            .frame(maxWidth: 200)
+                        Text("Tomos: \(owned) / \(total)")
+                            .font(.caption)
+                            .foregroundStyle(.gray)
+                    }
+                    if owned == total {
+                        Label("¡Colección completa!", systemImage: "checkmark.seal")
+                            .foregroundColor(.green)
+                    }
+                }
+
+                if let score = manga.score {
+                    VStack(spacing: 4) {
+                        HStack(spacing: 4) {
+                            let fullStars = Int(score)
+                            let borderColor = colorScheme == .dark ? Color.white : Color.black
+
+                            ForEach(1...10, id: \.self) { index in
+                                if index <= fullStars {
+                                    Image(systemName: "star.fill")
+                                        .font(.title3)
+                                        .foregroundColor(.yellow)
+                                        .overlay(
+                                            Image(systemName: "star")
+                                                .font(.title3)
+                                                .foregroundColor(borderColor)
+                                        )
+                                } else {
+                                    Image(systemName: "star")
+                                        .font(.title3)
+                                        .foregroundColor(borderColor)
+                                }
+                            }
+                        }
+                        Text("\(score, specifier: "%.1f")/10")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .center)
+                }
+            }
+            .font(.subheadline)
+            .foregroundStyle(.gray)
+            .frame(maxWidth: .infinity, alignment: .center)
+        }
+    }
+
+    // MARK: - SaveButtonsView
+    private struct SaveButtonsView: View {
+        let manga: Manga
+        @Binding var mangaIsAlreadySaved: Bool
+        @Binding var ownedVolumes: Int?
+        @Binding var ownedVolumesInput: String
+        @Binding var showAlert: Bool
+        @Binding var activeAlert: AppAlert?
+        let viewModel: MangaViewModel
+
+        var body: some View {
+            if mangaIsAlreadySaved {
+                HStack(spacing: 12) {
+                    Label("Guardado", systemImage: "checkmark")
+                        .padding()
+                        .frame(maxWidth: 200)
+                        .background(.gray.opacity(0.2))
+                        .foregroundColor(.gray)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+
+                    if manga.volumes != nil {
+                        Button {
+                            showAlert = true
+                        } label: {
+                            Image(systemName: "books.vertical")
+                                .padding()
+                                .frame(width: 48, height: 48)
+                                .background(.blue.opacity(0.2))
+                                .foregroundColor(.blue)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                        }
+                    }
+
+                    Button {
+                        Task {
+                            do {
+                                try await viewModel.unSaveManga(manga)
+                                mangaIsAlreadySaved = false
+                                ownedVolumes = nil
+                                activeAlert = .deleted
+                                await viewModel.refreshSavedMangas()
+                            } catch {
+                                activeAlert = .failedToDelete
+                            }
+                        }
+                    } label: {
+                        Image(systemName: "trash")
+                            .padding()
+                            .frame(width: 48, height: 48)
+                            .background(.red.opacity(0.2))
+                            .foregroundColor(.red)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .center)
+            } else {
+                Button {
+                    Task {
+                        do {
+                            try await viewModel.saveManga(manga)
+                            await viewModel.refreshSavedMangas()
+                            mangaIsAlreadySaved = true
+                            activeAlert = .saved
+                        } catch {
+                            activeAlert = .failedToSave
+                        }
+                    }
+                } label: {
+                    Label("Añadir", systemImage: "books.vertical")
+                        .padding()
+                        .frame(maxWidth: 300)
+                        .background(.white)
+                        .foregroundColor(.black)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                }
+                .frame(maxWidth: .infinity, alignment: .center)
+            }
+        }
+    }
+
+    // MARK: - MoreInfoButtonView
+    private struct MoreInfoButtonView: View {
+        @Binding var showMoreInfoSheet: Bool
+
+        var body: some View {
+            Button {
+                showMoreInfoSheet = true
+            } label: {
+                Label("Más info", systemImage: "info.circle")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.bordered)
+        }
+    }
+}
+
+
+
+// MARK: - Preview
 #Preview {
     let mockViewModel = MangaViewModel()
     return MangaDetailPreviewWrapper(manga: .test)
