@@ -112,15 +112,17 @@ struct MangaDetailView: View {
                                 .foregroundColor(.gray)
                                 .clipShape(RoundedRectangle(cornerRadius: 12))
 
-                            Button {
-                                showAlert = true
-                            } label: {
-                                Image(systemName: "books.vertical")
-                                    .padding()
-                                    .frame(width: 48, height: 48)
-                                    .background(.blue.opacity(0.2))
-                                    .foregroundColor(.blue)
-                                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                            if manga.volumes != nil {
+                                Button {
+                                    showAlert = true
+                                } label: {
+                                    Image(systemName: "books.vertical")
+                                        .padding()
+                                        .frame(width: 48, height: 48)
+                                        .background(.blue.opacity(0.2))
+                                        .foregroundColor(.blue)
+                                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                                }
                             }
 
                             Button {
@@ -130,6 +132,7 @@ struct MangaDetailView: View {
                                         mangaIsAlreadySaved = false
                                         ownedVolumes = nil
                                         activeAlert = .deleted
+                                        await viewModel.refreshSavedMangas()
                                     } catch {
                                         activeAlert = .failedToDelete
                                     }
@@ -149,6 +152,7 @@ struct MangaDetailView: View {
                             Task {
                                 do {
                                     try await viewModel.saveManga(manga)
+                                    await viewModel.refreshSavedMangas()
                                     mangaIsAlreadySaved = true
                                     activeAlert = .saved
                                 } catch {
@@ -226,6 +230,7 @@ struct MangaDetailView: View {
                                 if success {
                                     ownedVolumes = Int(ownedVolumesInput)
                                     activeAlert = .successVolumes
+                                    await viewModel.refreshSavedMangas()
                                 } else {
                                     activeAlert = .invalidInput
                                 }

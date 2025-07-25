@@ -1,15 +1,13 @@
-
 import SwiftUI
 
 struct MangaSavedView: View {
     
     @Environment(MangaViewModel.self) var viewModel
-    @State private var savedMangas: [Manga] = []
     @State private var selectedManga: Manga? = nil
     
     var body: some View {
         NavigationStack {
-            if savedMangas.isEmpty {
+            if viewModel.savedMangas.isEmpty {
                 VStack(spacing: 16){
                     Image(systemName: "bookmark.slash")
                         .resizable()
@@ -26,21 +24,33 @@ struct MangaSavedView: View {
                         .padding(.horizontal, 30)
                 }
             }  else {
+                VStack(alignment: .leading, spacing: 8) {
+                    let totalOwned = viewModel.savedMangas.compactMap(\.ownedVolumes).reduce(0, +)
+                    let totalVolumes = viewModel.savedMangas.compactMap(\.volumes).reduce(0, +)
+                    Text("Tienes \(viewModel.savedMangas.count) mangas guardados.")
+                    Text("Tomos obtenidos: \(totalOwned) de \(totalVolumes)")
+                }
+                .font(.subheadline)
+                .padding(.horizontal)
+                
                 List {
-                    ForEach(savedMangas, id: \.id) { manga in
-                        MangaRow(manga: manga)
-                            .contentShape(Rectangle())
-                            .onTapGesture {
-                                selectedManga = manga
-                            }
-                            .listRowSeparator(.visible)
+                    ForEach(viewModel.savedMangas, id: \.id) { manga in
+                        MangaRow(
+                            manga: manga,
+                            ownedVolumeText: "Tomos: \(manga.ownedVolumes ?? 0) / \(manga.volumes ?? 0)"
+                        )
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            selectedManga = manga
+                        }
+                        .listRowSeparator(.visible)
                     }
                     .onDelete { indexSet in
                         for index in indexSet {
-                            let mangaToRemove = savedMangas[index]
+                            let mangaToRemove = viewModel.savedMangas[index]
                             Task {
                                 try await viewModel.unSaveManga(mangaToRemove)
-                                savedMangas = await viewModel.getSavedMangas()
+                                await viewModel.getSavedMangas()
                             }
                         }
                     }
@@ -52,8 +62,10 @@ struct MangaSavedView: View {
                 }
             }
         }
-        .task {
-            savedMangas = await viewModel.getSavedMangas()
+        .onAppear {
+            Task {
+                await viewModel.getSavedMangas()
+            }
         }
     }
 }

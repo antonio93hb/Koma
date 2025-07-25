@@ -19,6 +19,7 @@ final class MangaViewModel {
     
     // MARK: Datos
     var mangas: [Manga] = []
+    var savedMangas: [Manga] = []
     private(set) var bestMangas: [Manga] = []
     
     // MARK: Estado UI
@@ -98,20 +99,21 @@ extension MangaViewModel {
         do {
             context.insert(mangaDB)
             try context.save()
+            await getSavedMangas()
         } catch {
             throw MangaError.unknown(error)
         }
     }
     /// Obtiene todos los mangas guardados desde la base de datos local.
-    func getSavedMangas() async -> [Manga] {
-        guard let context = context else { return [] }
+    func getSavedMangas() async {
+        guard let context = context else { return }
         let descriptor = FetchDescriptor<MangaDB>(predicate: #Predicate { $0.isSaved == true })
         do {
             let result = try context.fetch(descriptor)
-            return result.map { $0.toManga }
+            savedMangas = result.map { $0.toManga }
         } catch {
             errorMessage = MangaError.unknown(error).errorDescription
-            return []
+            savedMangas = []
         }
     }
     
@@ -128,6 +130,7 @@ extension MangaViewModel {
             if let mangaDB = try context.fetch(fetchDescriptor).first {
                 context.delete(mangaDB)
                 try context.save()
+                await getSavedMangas()
             }
         } catch {
             throw MangaError.unknown(error)
@@ -196,6 +199,11 @@ extension MangaViewModel {
             errorMessage = MangaError.unknown(error).errorDescription
             return nil
         }
+    }
+    
+    /// Alias para actualizar los mangas guardados.
+    func refreshSavedMangas() async {
+        await getSavedMangas()
     }
 }
 

@@ -15,6 +15,7 @@ struct MangaRow: View {
 
     let manga: Manga
     var showSavedIcon = false
+    var ownedVolumeText: String? = nil
     
     var body: some View {
         HStack {
@@ -34,6 +35,12 @@ struct MangaRow: View {
                     Text(english)
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
+                }
+                
+                if let ownedText = ownedVolumeText {
+                    Text(ownedText)
+                        .font(.caption)
+                        .foregroundStyle(.gray)
                 }
             }
             Spacer()
