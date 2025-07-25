@@ -56,7 +56,11 @@ struct MangaSavedView: View {
                 let totalVolumes = viewModel.savedMangas.compactMap(\.volumes).reduce(0, +)
                 
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(Color(.systemBackground))
+                    .fill(.ultraThinMaterial)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .stroke(Color.primary.opacity(0.1), lineWidth: 1)
+                    )
                     .frame(height: 60)
                     .overlay(
                         HStack(spacing: 16) {
