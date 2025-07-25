@@ -24,15 +24,6 @@ struct MangaSavedView: View {
                         .padding(.horizontal, 30)
                 }
             }  else {
-                VStack(alignment: .leading, spacing: 8) {
-                    let totalOwned = viewModel.savedMangas.compactMap(\.ownedVolumes).reduce(0, +)
-                    let totalVolumes = viewModel.savedMangas.compactMap(\.volumes).reduce(0, +)
-                    Text("Tienes \(viewModel.savedMangas.count) mangas guardados.")
-                    Text("Tomos obtenidos: \(totalOwned) de \(totalVolumes)")
-                }
-                .font(.subheadline)
-                .padding(.horizontal)
-                
                 List {
                     ForEach(viewModel.savedMangas, id: \.id) { manga in
                         MangaRow(
@@ -60,6 +51,24 @@ struct MangaSavedView: View {
                 .navigationDestination(item: $selectedManga) { manga in
                     MangaDetailView(manga: manga)
                 }
+                
+                let totalOwned = viewModel.savedMangas.compactMap(\.ownedVolumes).reduce(0, +)
+                let totalVolumes = viewModel.savedMangas.compactMap(\.volumes).reduce(0, +)
+                
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(Color(.systemBackground))
+                    .frame(height: 60)
+                    .overlay(
+                        HStack(spacing: 16) {
+                            Label("Guardados: \(viewModel.savedMangas.count)", systemImage: "bookmark.fill")
+                            Label("Tomos: \(totalOwned) / \(totalVolumes)", systemImage: "books.vertical")
+                        }
+                        .font(.footnote)
+                        .foregroundStyle(.primary)
+                        .padding(.horizontal)
+                    )
+                    .padding()
+                    .shadow(radius: 4)
             }
         }
         .onAppear {
