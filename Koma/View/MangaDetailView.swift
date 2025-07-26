@@ -16,8 +16,6 @@ struct MangaDetailView: View {
     let manga: Manga
     @State private var showFullSynopsis = false
     @State private var mangaIsAlreadySaved = false
-    @State private var showAlert = false
-    @State private var ownedVolumesInput = ""
     @State private var ownedVolumes: Int? = nil
     @State private var activeAlert: AppAlert?
     @State private var showMoreInfoSheet = false
@@ -47,8 +45,6 @@ struct MangaDetailView: View {
                             manga: manga,
                             mangaIsAlreadySaved: $mangaIsAlreadySaved,
                             ownedVolumes: $ownedVolumes,
-                            ownedVolumesInput: $ownedVolumesInput,
-                            showAlert: $showAlert,
                             activeAlert: $activeAlert,
                             showMoreInfoSheet: $showMoreInfoSheet,
                             viewModel: viewModel
@@ -73,8 +69,9 @@ struct MangaDetailView: View {
         }
         .onAppear {
             Task {
-                mangaIsAlreadySaved = try await viewModel.isMangaSaved(manga.id)
-                ownedVolumes = await viewModel.getOwnedVolumes(for: manga.id)
+                let state = await viewModel.loadMangaState(manga)
+                mangaIsAlreadySaved = state.isSaved
+                ownedVolumes = state.ownedVolumes
             }
         }
         .toolbar(.hidden, for: .tabBar)
@@ -225,17 +222,19 @@ extension MangaDetailView {
         let maxVolumes: Int?
         let manga: Manga
         let viewModel: MangaViewModel
-        
+
         var body: some View {
+            // 1. Determinar estado de los botones
+            let current = ownedVolumes ?? 0
+            let isMinusDisabled = current <= 0
+            let isPlusDisabled = maxVolumes != nil ? current >= (maxVolumes ?? Int.max) : false
+
             HStack(spacing: 8) {
-                let isMinusDisabled = (ownedVolumes ?? 0) <= 0
                 Button(action: {
                     Task {
                         let success = await viewModel.decreaseOwnedVolumes(for: manga)
                         if success {
                             ownedVolumes = max((ownedVolumes ?? 0) - 1, 0)
-                        } else {
-                            activeAlert = .invalidInput
                         }
                     }
                 }) {
@@ -243,20 +242,16 @@ extension MangaDetailView {
                         .font(.title2)
                         .foregroundColor(isMinusDisabled ? .gray : .blue)
                 }
-                .disabled(isMinusDisabled)
 
                 Text("\(ownedVolumes ?? 0)")
                     .font(.headline)
                     .frame(minWidth: 30)
 
-                let isPlusDisabled = (ownedVolumes ?? 0) >= (maxVolumes ?? Int.max)
                 Button(action: {
                     Task {
                         let success = await viewModel.increaseOwnedVolumes(for: manga)
                         if success {
                             ownedVolumes = min((ownedVolumes ?? 0) + 1, maxVolumes ?? Int.max)
-                        } else {
-                            activeAlert = .invalidInput
                         }
                     }
                 }) {
@@ -264,7 +259,6 @@ extension MangaDetailView {
                         .font(.title2)
                         .foregroundColor(isPlusDisabled ? .gray : .blue)
                 }
-                .disabled(isPlusDisabled)
             }
             .padding(8)
             .background(.ultraThinMaterial)
@@ -274,76 +268,102 @@ extension MangaDetailView {
         }
     }
 
+    // MARK: - SavedStateButtonsView
+    private struct SavedStateButtonsView: View {
+        let manga: Manga
+        @Binding var ownedVolumes: Int?
+        @Binding var activeAlert: AppAlert?
+        @Binding var showMoreInfoSheet: Bool
+        @Binding var mangaIsAlreadySaved: Bool
+        let viewModel: MangaViewModel
+
+        var body: some View {
+            VStack {
+                HStack {
+                    Label("Guardado", systemImage: "checkmark")
+                        .font(.subheadline)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 10)
+                        .background(.gray.opacity(0.1))
+                        .foregroundColor(.gray)
+                        .clipShape(Capsule())
+                        .overlay(Capsule().stroke(Color.gray.opacity(0.4), lineWidth: 1))
+                        .shadow(radius: 0.5)
+                    MoreInfoButtonView(showMoreInfoSheet: $showMoreInfoSheet)
+                }
+                HStack {
+                    if manga.volumes != nil {
+                        VolumeStepperView(
+                            ownedVolumes: $ownedVolumes,
+                            activeAlert: $activeAlert,
+                            maxVolumes: manga.volumes,
+                            manga: manga,
+                            viewModel: viewModel
+                        )
+                    }
+                    AppGlassButton(title: "Borrar", systemImage: "trash") {
+                        Task {
+                            activeAlert = await viewModel.deleteMangaAndGetAlert(manga)
+                            if activeAlert == .deleted {
+                                mangaIsAlreadySaved = false
+                                ownedVolumes = nil
+                            }
+                        }
+                    }
+                    .tint(.red)
+                }
+            }
+        }
+    }
+
+    // MARK: - UnsavedStateButtonsView
+    private struct UnsavedStateButtonsView: View {
+        let manga: Manga
+        @Binding var mangaIsAlreadySaved: Bool
+        @Binding var activeAlert: AppAlert?
+        @Binding var showMoreInfoSheet: Bool
+        let viewModel: MangaViewModel
+
+        var body: some View {
+            HStack {
+                AppGlassButton(title: "Añadir", systemImage: "books.vertical") {
+                    Task {
+                        activeAlert = await viewModel.saveMangaAndGetAlert(manga)
+                        mangaIsAlreadySaved = (activeAlert == .saved)
+                    }
+                }
+                MoreInfoButtonView(showMoreInfoSheet: $showMoreInfoSheet)
+            }
+        }
+    }
+
     // MARK: - SaveButtonsView
     private struct SaveButtonsView: View {
         let manga: Manga
         @Binding var mangaIsAlreadySaved: Bool
         @Binding var ownedVolumes: Int?
-        @Binding var ownedVolumesInput: String
-        @Binding var showAlert: Bool
         @Binding var activeAlert: AppAlert?
         @Binding var showMoreInfoSheet: Bool
         let viewModel: MangaViewModel
-        
+
         var body: some View {
             if mangaIsAlreadySaved {
-                VStack{
-                    HStack{
-                        Label("Guardado", systemImage: "checkmark")
-                            .font(.subheadline)
-                            .padding(.horizontal, 20)
-                            .padding(.vertical, 10)
-                            .background(.gray.opacity(0.1))
-                            .foregroundColor(.gray)
-                            .clipShape(Capsule())
-                            .overlay(
-                                Capsule().stroke(Color.gray.opacity(0.4), lineWidth: 1)
-                            )
-                            .shadow(radius: 0.5)
-                        MoreInfoButtonView(showMoreInfoSheet: $showMoreInfoSheet)
-                    }
-                    HStack{
-                        if manga.volumes != nil {
-                            VolumeStepperView(
-                                ownedVolumes: $ownedVolumes,
-                                activeAlert: $activeAlert,
-                                maxVolumes: manga.volumes,
-                                manga: manga,
-                                viewModel: viewModel
-                            )
-                        }
-                        AppGlassButton(title: "Borrar", systemImage: "trash") {
-                            Task {
-                                do {
-                                    try await viewModel.unSaveManga(manga)
-                                    mangaIsAlreadySaved = false
-                                    ownedVolumes = nil
-                                    activeAlert = .deleted
-                                    await viewModel.refreshSavedMangas()
-                                } catch {
-                                    activeAlert = .failedToDelete
-                                }
-                            }
-                        }
-                        .tint(.red)
-                    }
-                }
+                SavedStateButtonsView(
+                    manga: manga,
+                    ownedVolumes: $ownedVolumes,
+                    activeAlert: $activeAlert,
+                    showMoreInfoSheet: $showMoreInfoSheet,
+                    mangaIsAlreadySaved: $mangaIsAlreadySaved,
+                    viewModel: viewModel
+                )
             } else {
-                HStack{
-                    AppGlassButton(title: "Añadir", systemImage: "books.vertical") {
-                        Task {
-                            do {
-                                try await viewModel.saveManga(manga)
-                                await viewModel.refreshSavedMangas()
-                                mangaIsAlreadySaved = true
-                                activeAlert = .saved
-                            } catch {
-                                activeAlert = .failedToSave
-                            }
-                        }
-                    }
-                    MoreInfoButtonView(showMoreInfoSheet: $showMoreInfoSheet)
-                }
+                UnsavedStateButtonsView(
+                    manga: manga,
+                    mangaIsAlreadySaved: $mangaIsAlreadySaved,
+                    activeAlert: $activeAlert,
+                    showMoreInfoSheet: $showMoreInfoSheet,
+                    viewModel: viewModel
+                )
             }
         }
     }

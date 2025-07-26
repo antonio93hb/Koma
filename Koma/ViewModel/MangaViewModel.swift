@@ -45,20 +45,6 @@ final class MangaViewModel {
 
 // MARK: Métodos Públicos
 extension MangaViewModel {
-    /// Valida e intenta actualizar el número de tomos que posee el usuario. Devuelve true si se actualizó correctamente.
-    func handleOwnedVolumeUpdate(for mangaID: Int, input: String, max: Int) async -> Bool {
-        guard let value = Int(input), value >= 0, value <= max else {
-            return false
-        }
-
-        do {
-            try await updateOwnedVolumesInDB(for: mangaID, to: value)
-            return true
-        } catch {
-            errorMessage = MangaError.unknown(error).errorDescription
-            return false
-        }
-    }
     
     /// Carga los mangas y los mejores mangas si aún no se han cargado.
     func loadIfNeeded() async {
@@ -205,6 +191,24 @@ extension MangaViewModel {
     func refreshSavedMangas() async {
         await getSavedMangas()
     }
+
+    /// Guarda un manga en la base de datos y refresca la lista de guardados. Devuelve true si la operación fue exitosa.
+    func saveMangaAndRefresh(_ manga: Manga) async -> Bool {
+        do {
+            try await saveManga(manga)
+            await refreshSavedMangas()
+            return true
+        } catch {
+            return false
+        }
+    }
+
+    /// Guarda un manga y devuelve el AppAlert correspondiente.
+    func saveMangaAndGetAlert(_ manga: Manga) async -> AppAlert {
+        let success = await saveMangaAndRefresh(manga)
+        return success ? .saved : .failedToSave
+    }
+
     /// Actualiza el número de tomos poseídos para un manga dado y devuelve true si se realizó correctamente.
     func updateOwnedVolumes(for manga: Manga, to newValue: Int) async -> Bool {
         if let max = manga.volumes, newValue < 0 || newValue > max {
@@ -223,16 +227,45 @@ extension MangaViewModel {
     func increaseOwnedVolumes(for manga: Manga) async -> Bool {
         let current = await getOwnedVolumes(for: manga.id) ?? 0
         let max = manga.volumes ?? Int.max
-        let newValue = min(current + 1, max)
+        
+        guard current < max else { return false }   // Si ya está en el máximo, no hace nada y no dispara alerta
+        
+        let newValue = current + 1
         return await updateOwnedVolumes(for: manga, to: newValue)
     }
 
     /// Decrementa el número de tomos poseídos para un manga dado y devuelve true si se actualizó correctamente.
     func decreaseOwnedVolumes(for manga: Manga) async -> Bool {
         let current = await getOwnedVolumes(for: manga.id) ?? 0
-        guard current > 0 else { return false }
+        
+        guard current > 0 else { return false }    // Si ya está en 0, no hace nada y no dispara alerta
+        
         let newValue = current - 1
         return await updateOwnedVolumes(for: manga, to: newValue)
+    }
+
+    /// Elimina un manga guardado y devuelve true si se eliminó correctamente.
+    func deleteManga(_ manga: Manga) async -> Bool {
+        do {
+            try await unSaveManga(manga)
+            await refreshSavedMangas()
+            return true
+        } catch {
+            return false
+        }
+    }
+
+    /// Elimina un manga y devuelve el AppAlert correspondiente.
+    func deleteMangaAndGetAlert(_ manga: Manga) async -> AppAlert {
+        let success = await deleteManga(manga)
+        return success ? .deleted : .failedToDelete
+    }
+
+    /// Carga el estado de un manga, devolviendo si está guardado y cuántos tomos posee.
+    func loadMangaState(_ manga: Manga) async -> (isSaved: Bool, ownedVolumes: Int?) {
+        let saved = (try? await isMangaSaved(manga.id)) ?? false
+        let volumes = await getOwnedVolumes(for: manga.id)
+        return (saved, volumes)
     }
 }
 
