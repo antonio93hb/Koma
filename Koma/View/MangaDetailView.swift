@@ -66,7 +66,8 @@ struct MangaDetailView: View {
                     background: manga.background,
                     titleEnglish: manga.titleEnglish,
                     titleJapanese: manga.titleJapanese,
-                    url: manga.url
+                    url: manga.url,
+                    imageURL: manga.imageURL
                 )
             }
         }
