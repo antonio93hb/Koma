@@ -52,7 +52,7 @@ extension MangaViewModel {
         }
 
         do {
-            try await updateOwnedVolumes(for: mangaID, to: value)
+            try await updateOwnedVolumesInDB(for: mangaID, to: value)
             return true
         } catch {
             errorMessage = MangaError.unknown(error).errorDescription
@@ -163,7 +163,7 @@ extension MangaViewModel {
     }
 
     /// Actualiza el número de tomos que posee el usuario para un manga guardado.
-    func updateOwnedVolumes(for mangaID: Int, to newValue: Int) async throws {
+    func updateOwnedVolumesInDB(for mangaID: Int, to newValue: Int) async throws {
         guard let context else { throw MangaError.invalidData }
 
         let descriptor = FetchDescriptor<MangaDB>(predicate: #Predicate<MangaDB> { $0.id == mangaID })
@@ -204,6 +204,19 @@ extension MangaViewModel {
     /// Alias para actualizar los mangas guardados.
     func refreshSavedMangas() async {
         await getSavedMangas()
+    }
+    /// Actualiza el número de tomos poseídos para un manga dado y devuelve true si se realizó correctamente.
+    func updateOwnedVolumes(for manga: Manga, to newValue: Int) async -> Bool {
+        if let max = manga.volumes, newValue < 0 || newValue > max {
+            return false
+        }
+        do {
+            try await updateOwnedVolumesInDB(for: manga.id, to: newValue)
+            await refreshSavedMangas()
+            return true
+        } catch {
+            return false
+        }
     }
 }
 

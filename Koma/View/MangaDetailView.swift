@@ -58,27 +58,7 @@ struct MangaDetailView: View {
                 }
                 .padding(.horizontal)
                 .padding(.vertical, 16)
-                .alert("Modificar tomos", isPresented: $showAlert, actions: {
-                    TextField("Número de tomos", text: $ownedVolumesInput)
-                        .keyboardType(.numberPad)
-                    Button("Guardar") {
-                        if let total = manga.volumes {
-                            Task {
-                                let success = await viewModel.handleOwnedVolumeUpdate(for: manga.id, input: ownedVolumesInput, max: total)
-                                if success {
-                                    ownedVolumes = Int(ownedVolumesInput)
-                                    activeAlert = .successVolumes
-                                    await viewModel.refreshSavedMangas()
-                                } else {
-                                    activeAlert = .invalidInput
-                                }
-                            }
-                        } else {
-                            activeAlert = .invalidInput
-                        }
-                    }
-                    Button("Cancelar", role: .cancel) { }
-                })
+                // Removed unused alert for modifying tomos
                 .alert(item: $activeAlert) { $0.alert }
             }
             .sheet(isPresented: $showMoreInfoSheet) {
@@ -268,10 +248,54 @@ extension MangaDetailView {
                     }
                     HStack{
                         if manga.volumes != nil {
-                            AppGlassButton(title: "Modificar", systemImage: "books.vertical") {
-                                showAlert = true
+                            HStack(spacing: 8) {
+                                let isMinusDisabled = (ownedVolumes ?? 0) <= 0
+                                Button(action: {
+                                    if !isMinusDisabled, let current = ownedVolumes {
+                                        let newValue = current - 1
+                                        ownedVolumes = newValue
+                                        Task {
+                                            let success = await viewModel.updateOwnedVolumes(for: manga, to: newValue)
+                                            if !success {
+                                                activeAlert = .invalidInput
+                                            }
+                                        }
+                                    }
+                                }) {
+                                    Image(systemName: "minus.circle.fill")
+                                        .font(.title2)
+                                        .foregroundColor(isMinusDisabled ? .gray : .blue)
+                                }
+                                .disabled(isMinusDisabled)
+
+                                Text("\(ownedVolumes ?? 0)")
+                                    .font(.headline)
+                                    .frame(minWidth: 30)
+
+                                let isPlusDisabled = (ownedVolumes ?? 0) >= (manga.volumes ?? Int.max)
+                                Button(action: {
+                                    if !isPlusDisabled, let max = manga.volumes {
+                                        let newValue = min((ownedVolumes ?? 0) + 1, max)
+                                        ownedVolumes = newValue
+                                        Task {
+                                            let success = await viewModel.updateOwnedVolumes(for: manga, to: newValue)
+                                            if !success {
+                                                activeAlert = .invalidInput
+                                            }
+                                        }
+                                    }
+                                }) {
+                                    Image(systemName: "plus.circle.fill")
+                                        .font(.title2)
+                                        .foregroundColor(isPlusDisabled ? .gray : .blue)
+                                }
+                                .disabled(isPlusDisabled)
                             }
-                            .tint(.blue)
+                            .padding(8)
+                            .background(.ultraThinMaterial)
+                            .clipShape(Capsule())
+                            .overlay(Capsule().stroke(Color.blue.opacity(0.3), lineWidth: 1))
+                            .shadow(radius: 1)
                         }
                         AppGlassButton(title: "Borrar", systemImage: "trash") {
                             Task {
