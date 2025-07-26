@@ -63,7 +63,10 @@ struct MangaDetailView: View {
                     genres: manga.genres,
                     themes: manga.themes,
                     demographics: manga.demographics,
-                    background: manga.background
+                    background: manga.background,
+                    titleEnglish: manga.titleEnglish,
+                    titleJapanese: manga.titleJapanese,
+                    url: manga.url
                 )
             }
         }

@@ -13,10 +13,27 @@ struct MoreInfoSheetView: View {
     let themes: [Theme]
     let demographics: [Demographic]
     let background: String?
+    let titleEnglish: String?
+    let titleJapanese: String?
+    let url: String?
 
     var body: some View {
         NavigationView {
             List {
+                if let english = titleEnglish, !english.isEmpty {
+                    Section(header: Text("Título en Inglés")) {
+                        Text(english)
+                            .font(.body)
+                    }
+                }
+
+                if let japanese = titleJapanese, !japanese.isEmpty {
+                    Section(header: Text("Título en Japonés")) {
+                        Text(japanese)
+                            .font(.body)
+                    }
+                }
+                
                 if !authors.isEmpty {
                     Section(header: Text("Autores")) {
                         ForEach(authors, id: \.id) { author in
@@ -62,6 +79,16 @@ struct MoreInfoSheetView: View {
                             .font(.body)
                             .multilineTextAlignment(.leading)
                             .padding(.vertical, 4)
+                    }
+                }
+
+                if let urlString = url, !urlString.isEmpty,
+                   let validURL = URL(string: urlString) {
+                    Section(header: Text("URL")) {
+                        Link(urlString, destination: validURL)
+                            .font(.footnote)
+                            .foregroundColor(.blue)
+                            .lineLimit(1)
                     }
                 }
             }
