@@ -48,33 +48,48 @@ struct MoreInfoSheetView: View {
                             }
                         }
                         if !demographics.isEmpty {
-                            section(title: "Demografía") {
-                                ForEach(demographics, id: \.id) { demo in
-                                    Text(demo.name)
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text("Demografía")
+                                    .font(.headline)
+                                    .padding(.horizontal)
+
+                                ScrollView(.horizontal, showsIndicators: false) {
+                                    HStack(spacing: 8) {
+                                        ForEach(demographics, id: \.id) { demo in
+                                            let style = DemographicUIHelper.style(for: demo.name)
+                                            Label(demo.name, systemImage: style.icon)
+                                                .font(.caption)
+                                                .padding(.horizontal, 10)
+                                                .padding(.vertical, 6)
+                                                .background(
+                                                    RoundedRectangle(cornerRadius: 12)
+                                                        .fill(style.color.opacity(0.15))
+                                                )
+                                                .foregroundColor(style.color)
+                                        }
+                                    }
+                                    .padding(.horizontal)
                                 }
                             }
                         }
                         if !genres.isEmpty {
-                            section(title: "Géneros") {
-                                ForEach(genres, id: \.id) { genre in
-                                    Text(genre.genre)
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text("Géneros")
+                                    .font(.headline)
+                                    .padding(.horizontal)
+                                FlowLayout(items: genres.map { $0.genre }) { genreName in
+                                    let style = GenreUIHelper.style(for: genreName)
+                                    Label(genreName, systemImage: style.icon)
+                                        .font(.caption)
+                                        .padding(.horizontal, 10)
+                                        .padding(.vertical, 6)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 12)
+                                                .fill(style.color.opacity(0.15))
+                                        )
+                                        .foregroundColor(style.color)
                                 }
-                            }
-                        }
-                        if let background, !background.isEmpty {
-                            section(title: "Información adicional") {
-                                Text(background)
-                                    .font(.body)
-                                    .multilineTextAlignment(.leading)
-                                    .padding(.vertical, 4)
-                            }
-                        }
-                        if let urlString = url, !urlString.isEmpty, let validURL = URL(string: urlString) {
-                            section(title: "URL") {
-                                Link(urlString, destination: validURL)
-                                    .font(.footnote)
-                                    .foregroundColor(.blue)
-                                    .lineLimit(1)
+                                .padding(.horizontal)
                             }
                         }
                         if !themes.isEmpty {
@@ -95,6 +110,23 @@ struct MoreInfoSheetView: View {
                                         .foregroundColor(style.color)
                                 }
                                 .padding(.horizontal)
+                            }
+                        }
+
+                        if let background, !background.isEmpty {
+                            section(title: "Información adicional") {
+                                Text(background)
+                                    .font(.body)
+                                    .multilineTextAlignment(.leading)
+                                    .padding(.vertical, 4)
+                            }
+                        }
+                        if let urlString = url, !urlString.isEmpty, let validURL = URL(string: urlString) {
+                            section(title: "URL") {
+                                Link(urlString, destination: validURL)
+                                    .font(.footnote)
+                                    .foregroundColor(.blue)
+                                    .lineLimit(1)
                             }
                         }
                     }

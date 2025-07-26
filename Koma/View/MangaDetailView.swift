@@ -98,9 +98,19 @@ struct MangaDetailView: View {
                     .lineLimit(nil)
                     .frame(maxWidth: UIScreen.main.bounds.width * 0.9)
 
-                Text(manga.status)
-                    .font(.headline)
-                    .foregroundStyle(.gray)
+                Text(manga.mangaStatus.text)
+                    .font(.caption)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(
+                        Capsule()
+                            .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                            .background(
+                                Capsule()
+                                    .fill(Color.gray.opacity(0.05))
+                            )
+                    )
+                    .foregroundColor(.secondary)
             }
             .frame(maxWidth: .infinity, alignment: .center)
         }

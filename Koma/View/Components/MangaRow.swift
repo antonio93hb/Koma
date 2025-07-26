@@ -32,8 +32,18 @@ struct MangaRow: View {
                     .foregroundStyle(.primary)
                 
                 Text(manga.mangaStatus.text)
-                    .font(.subheadline)
-                    .foregroundColor(manga.mangaStatus.color)
+                    .font(.caption)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(
+                        Capsule()
+                            .stroke(manga.mangaStatus.color.opacity(0.3), lineWidth: 1)
+                            .background(
+                                Capsule()
+                                    .fill(manga.mangaStatus.color.opacity(0.05))
+                            )
+                    )
+                    .foregroundColor(.secondary)
                 
                 if let ownedText = ownedVolumeText {
                     Text(ownedText)
