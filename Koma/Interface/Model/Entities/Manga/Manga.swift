@@ -23,6 +23,9 @@ struct Manga: Identifiable, Hashable {
     let themes: [Theme]
     var isSaved = false
     var ownedVolumes: Int?
+    var mangaStatus: MangaStatus {
+        MangaStatus(from: status)
+    }
 }
 
 extension Manga: Equatable {

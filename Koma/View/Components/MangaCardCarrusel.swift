@@ -65,7 +65,7 @@ struct MangaCardCarrusel: View {
                             .shadow(color: .black, radius: 2, x:1, y:1)
                             .shadow(color: .black, radius: 2, x: -1, y: -1)
                         
-                        Text(manga.status.capitalized) // finished / ongoing
+                        Text((manga.titleJapanese ?? "").capitalized)
                             .font(.subheadline)
                             .foregroundColor(.white)
                             .shadow(color: .black, radius: 2, x:1, y:1)

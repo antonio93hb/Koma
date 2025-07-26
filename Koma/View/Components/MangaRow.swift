@@ -31,11 +31,9 @@ struct MangaRow: View {
                     .font(.headline)
                     .foregroundStyle(.primary)
                 
-                if let english = manga.titleEnglish {
-                    Text(english)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
+                Text(manga.mangaStatus.text)
+                    .font(.subheadline)
+                    .foregroundColor(manga.mangaStatus.color)
                 
                 if let ownedText = ownedVolumeText {
                     Text(ownedText)
