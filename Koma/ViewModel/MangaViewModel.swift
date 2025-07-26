@@ -218,6 +218,22 @@ extension MangaViewModel {
             return false
         }
     }
+
+    /// Incrementa el número de tomos poseídos para un manga dado y devuelve true si se actualizó correctamente.
+    func increaseOwnedVolumes(for manga: Manga) async -> Bool {
+        let current = await getOwnedVolumes(for: manga.id) ?? 0
+        let max = manga.volumes ?? Int.max
+        let newValue = min(current + 1, max)
+        return await updateOwnedVolumes(for: manga, to: newValue)
+    }
+
+    /// Decrementa el número de tomos poseídos para un manga dado y devuelve true si se actualizó correctamente.
+    func decreaseOwnedVolumes(for manga: Manga) async -> Bool {
+        let current = await getOwnedVolumes(for: manga.id) ?? 0
+        guard current > 0 else { return false }
+        let newValue = current - 1
+        return await updateOwnedVolumes(for: manga, to: newValue)
+    }
 }
 
 // MARK: Métodos Privados

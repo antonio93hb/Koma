@@ -230,12 +230,12 @@ extension MangaDetailView {
             HStack(spacing: 8) {
                 let isMinusDisabled = (ownedVolumes ?? 0) <= 0
                 Button(action: {
-                    if !isMinusDisabled, let current = ownedVolumes {
-                        let newValue = current - 1
-                        ownedVolumes = newValue
-                        Task {
-                            let success = await viewModel.updateOwnedVolumes(for: manga, to: newValue)
-                            if !success { activeAlert = .invalidInput }
+                    Task {
+                        let success = await viewModel.decreaseOwnedVolumes(for: manga)
+                        if success {
+                            ownedVolumes = max((ownedVolumes ?? 0) - 1, 0)
+                        } else {
+                            activeAlert = .invalidInput
                         }
                     }
                 }) {
@@ -251,12 +251,12 @@ extension MangaDetailView {
 
                 let isPlusDisabled = (ownedVolumes ?? 0) >= (maxVolumes ?? Int.max)
                 Button(action: {
-                    if !isPlusDisabled {
-                        let newValue = min((ownedVolumes ?? 0) + 1, maxVolumes ?? Int.max)
-                        ownedVolumes = newValue
-                        Task {
-                            let success = await viewModel.updateOwnedVolumes(for: manga, to: newValue)
-                            if !success { activeAlert = .invalidInput }
+                    Task {
+                        let success = await viewModel.increaseOwnedVolumes(for: manga)
+                        if success {
+                            ownedVolumes = min((ownedVolumes ?? 0) + 1, maxVolumes ?? Int.max)
+                        } else {
+                            activeAlert = .invalidInput
                         }
                     }
                 }) {
