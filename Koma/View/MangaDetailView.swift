@@ -218,6 +218,62 @@ extension MangaDetailView {
         }
     }
     
+    // MARK: - VolumeStepperView
+    private struct VolumeStepperView: View {
+        @Binding var ownedVolumes: Int?
+        @Binding var activeAlert: AppAlert?
+        let maxVolumes: Int?
+        let manga: Manga
+        let viewModel: MangaViewModel
+        
+        var body: some View {
+            HStack(spacing: 8) {
+                let isMinusDisabled = (ownedVolumes ?? 0) <= 0
+                Button(action: {
+                    if !isMinusDisabled, let current = ownedVolumes {
+                        let newValue = current - 1
+                        ownedVolumes = newValue
+                        Task {
+                            let success = await viewModel.updateOwnedVolumes(for: manga, to: newValue)
+                            if !success { activeAlert = .invalidInput }
+                        }
+                    }
+                }) {
+                    Image(systemName: "minus.circle.fill")
+                        .font(.title2)
+                        .foregroundColor(isMinusDisabled ? .gray : .blue)
+                }
+                .disabled(isMinusDisabled)
+
+                Text("\(ownedVolumes ?? 0)")
+                    .font(.headline)
+                    .frame(minWidth: 30)
+
+                let isPlusDisabled = (ownedVolumes ?? 0) >= (maxVolumes ?? Int.max)
+                Button(action: {
+                    if !isPlusDisabled {
+                        let newValue = min((ownedVolumes ?? 0) + 1, maxVolumes ?? Int.max)
+                        ownedVolumes = newValue
+                        Task {
+                            let success = await viewModel.updateOwnedVolumes(for: manga, to: newValue)
+                            if !success { activeAlert = .invalidInput }
+                        }
+                    }
+                }) {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.title2)
+                        .foregroundColor(isPlusDisabled ? .gray : .blue)
+                }
+                .disabled(isPlusDisabled)
+            }
+            .padding(8)
+            .background(.ultraThinMaterial)
+            .clipShape(Capsule())
+            .overlay(Capsule().stroke(Color.blue.opacity(0.3), lineWidth: 1))
+            .shadow(radius: 1)
+        }
+    }
+
     // MARK: - SaveButtonsView
     private struct SaveButtonsView: View {
         let manga: Manga
@@ -248,54 +304,13 @@ extension MangaDetailView {
                     }
                     HStack{
                         if manga.volumes != nil {
-                            HStack(spacing: 8) {
-                                let isMinusDisabled = (ownedVolumes ?? 0) <= 0
-                                Button(action: {
-                                    if !isMinusDisabled, let current = ownedVolumes {
-                                        let newValue = current - 1
-                                        ownedVolumes = newValue
-                                        Task {
-                                            let success = await viewModel.updateOwnedVolumes(for: manga, to: newValue)
-                                            if !success {
-                                                activeAlert = .invalidInput
-                                            }
-                                        }
-                                    }
-                                }) {
-                                    Image(systemName: "minus.circle.fill")
-                                        .font(.title2)
-                                        .foregroundColor(isMinusDisabled ? .gray : .blue)
-                                }
-                                .disabled(isMinusDisabled)
-
-                                Text("\(ownedVolumes ?? 0)")
-                                    .font(.headline)
-                                    .frame(minWidth: 30)
-
-                                let isPlusDisabled = (ownedVolumes ?? 0) >= (manga.volumes ?? Int.max)
-                                Button(action: {
-                                    if !isPlusDisabled, let max = manga.volumes {
-                                        let newValue = min((ownedVolumes ?? 0) + 1, max)
-                                        ownedVolumes = newValue
-                                        Task {
-                                            let success = await viewModel.updateOwnedVolumes(for: manga, to: newValue)
-                                            if !success {
-                                                activeAlert = .invalidInput
-                                            }
-                                        }
-                                    }
-                                }) {
-                                    Image(systemName: "plus.circle.fill")
-                                        .font(.title2)
-                                        .foregroundColor(isPlusDisabled ? .gray : .blue)
-                                }
-                                .disabled(isPlusDisabled)
-                            }
-                            .padding(8)
-                            .background(.ultraThinMaterial)
-                            .clipShape(Capsule())
-                            .overlay(Capsule().stroke(Color.blue.opacity(0.3), lineWidth: 1))
-                            .shadow(radius: 1)
+                            VolumeStepperView(
+                                ownedVolumes: $ownedVolumes,
+                                activeAlert: $activeAlert,
+                                maxVolumes: manga.volumes,
+                                manga: manga,
+                                viewModel: viewModel
+                            )
                         }
                         AppGlassButton(title: "Borrar", systemImage: "trash") {
                             Task {
