@@ -41,20 +41,20 @@ struct MangaDetailView: View {
                     // Fecha, capítulos, tomos, progreso y puntuación encapsulados
                     InfoSectionView(manga: manga, ownedVolumes: ownedVolumes)
 
-                    // Botón "Añadir" o gestión de guardado (refactorizado)
-                    SaveButtonsView(
-                        manga: manga,
-                        mangaIsAlreadySaved: $mangaIsAlreadySaved,
-                        ownedVolumes: $ownedVolumes,
-                        ownedVolumesInput: $ownedVolumesInput,
-                        showAlert: $showAlert,
-                        activeAlert: $activeAlert,
-                        viewModel: viewModel
-                    )
-
-                    // Botones inferiores
-                    MoreInfoButtonView(showMoreInfoSheet: $showMoreInfoSheet)
-
+                    // Botón "Añadir" o gestión de guardado y botón de más info alineados horizontalmente
+                    HStack {
+                        SaveButtonsView(
+                            manga: manga,
+                            mangaIsAlreadySaved: $mangaIsAlreadySaved,
+                            ownedVolumes: $ownedVolumes,
+                            ownedVolumesInput: $ownedVolumesInput,
+                            showAlert: $showAlert,
+                            activeAlert: $activeAlert,
+                            showMoreInfoSheet: $showMoreInfoSheet,
+                            viewModel: viewModel
+                        )
+                    }
+                    .frame(maxWidth: 350)
                 }
                 .padding(.horizontal)
                 .padding(.vertical, 16)
@@ -97,6 +97,7 @@ struct MangaDetailView: View {
                 ownedVolumes = await viewModel.getOwnedVolumes(for: manga.id)
             }
         }
+        .toolbar(.hidden, for: .tabBar)
     }
 
     // MARK: - MangaHeaderView
@@ -153,7 +154,7 @@ extension MangaDetailView {
         let manga: Manga
         let ownedVolumes: Int?
         @Environment(\.colorScheme) private var colorScheme
-
+        
         var body: some View {
             VStack(spacing: 4) {
                 if let start = manga.startDate {
@@ -165,7 +166,7 @@ extension MangaDetailView {
                             .foregroundColor(.green)
                     }
                 }
-
+                
                 HStack(spacing: 16) {
                     if let chapters = manga.chapters {
                         Label("Capítulos: \(chapters)", systemImage: "doc.plaintext")
@@ -174,7 +175,7 @@ extension MangaDetailView {
                         Label("Tomos: \(volumes)", systemImage: "books.vertical")
                     }
                 }
-
+                
                 if let owned = ownedVolumes, let total = manga.volumes {
                     VStack(spacing: 4) {
                         ProgressView(value: Float(owned), total: Float(total))
@@ -189,16 +190,27 @@ extension MangaDetailView {
                             .foregroundColor(.green)
                     }
                 }
-
+                
                 if let score = manga.score {
                     VStack(spacing: 4) {
                         HStack(spacing: 4) {
-                            let fullStars = Int(score)
+                            let roundedScore = (score * 2).rounded() / 2
+                            let fullStars = Int(floor(roundedScore))
+                            let hasHalfStar = roundedScore - Double(fullStars) == 0.5
                             let borderColor = colorScheme == .dark ? Color.white : Color.black
 
                             ForEach(1...10, id: \.self) { index in
                                 if index <= fullStars {
                                     Image(systemName: "star.fill")
+                                        .font(.title3)
+                                        .foregroundColor(.yellow)
+                                        .overlay(
+                                            Image(systemName: "star")
+                                                .font(.title3)
+                                                .foregroundColor(borderColor)
+                                        )
+                                } else if index == fullStars + 1 && hasHalfStar {
+                                    Image(systemName: "star.leadinghalf.filled")
                                         .font(.title3)
                                         .foregroundColor(.yellow)
                                         .overlay(
@@ -225,7 +237,7 @@ extension MangaDetailView {
             .frame(maxWidth: .infinity, alignment: .center)
         }
     }
-
+    
     // MARK: - SaveButtonsView
     private struct SaveButtonsView: View {
         let manga: Manga
@@ -234,90 +246,77 @@ extension MangaDetailView {
         @Binding var ownedVolumesInput: String
         @Binding var showAlert: Bool
         @Binding var activeAlert: AppAlert?
+        @Binding var showMoreInfoSheet: Bool
         let viewModel: MangaViewModel
-
+        
         var body: some View {
             if mangaIsAlreadySaved {
-                HStack(spacing: 12) {
-                    Label("Guardado", systemImage: "checkmark")
-                        .padding()
-                        .frame(maxWidth: 200)
-                        .background(.gray.opacity(0.2))
-                        .foregroundColor(.gray)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-
-                    if manga.volumes != nil {
-                        Button {
-                            showAlert = true
-                        } label: {
-                            Image(systemName: "books.vertical")
-                                .padding()
-                                .frame(width: 48, height: 48)
-                                .background(.blue.opacity(0.2))
-                                .foregroundColor(.blue)
-                                .clipShape(RoundedRectangle(cornerRadius: 12))
-                        }
+                VStack{
+                    HStack{
+                        Label("Guardado", systemImage: "checkmark")
+                            .font(.subheadline)
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 10)
+                            .background(.gray.opacity(0.1))
+                            .foregroundColor(.gray)
+                            .clipShape(Capsule())
+                            .overlay(
+                                Capsule().stroke(Color.gray.opacity(0.4), lineWidth: 1)
+                            )
+                            .shadow(radius: 0.5)
+                        MoreInfoButtonView(showMoreInfoSheet: $showMoreInfoSheet)
                     }
-
-                    Button {
-                        Task {
-                            do {
-                                try await viewModel.unSaveManga(manga)
-                                mangaIsAlreadySaved = false
-                                ownedVolumes = nil
-                                activeAlert = .deleted
-                                await viewModel.refreshSavedMangas()
-                            } catch {
-                                activeAlert = .failedToDelete
+                    HStack{
+                        if manga.volumes != nil {
+                            AppGlassButton(title: "Modificar", systemImage: "books.vertical") {
+                                showAlert = true
+                            }
+                            .tint(.blue)
+                        }
+                        AppGlassButton(title: "Borrar", systemImage: "trash") {
+                            Task {
+                                do {
+                                    try await viewModel.unSaveManga(manga)
+                                    mangaIsAlreadySaved = false
+                                    ownedVolumes = nil
+                                    activeAlert = .deleted
+                                    await viewModel.refreshSavedMangas()
+                                } catch {
+                                    activeAlert = .failedToDelete
+                                }
                             }
                         }
-                    } label: {
-                        Image(systemName: "trash")
-                            .padding()
-                            .frame(width: 48, height: 48)
-                            .background(.red.opacity(0.2))
-                            .foregroundColor(.red)
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .tint(.red)
                     }
                 }
-                .frame(maxWidth: .infinity, alignment: .center)
             } else {
-                Button {
-                    Task {
-                        do {
-                            try await viewModel.saveManga(manga)
-                            await viewModel.refreshSavedMangas()
-                            mangaIsAlreadySaved = true
-                            activeAlert = .saved
-                        } catch {
-                            activeAlert = .failedToSave
+                HStack{
+                    AppGlassButton(title: "Añadir", systemImage: "books.vertical") {
+                        Task {
+                            do {
+                                try await viewModel.saveManga(manga)
+                                await viewModel.refreshSavedMangas()
+                                mangaIsAlreadySaved = true
+                                activeAlert = .saved
+                            } catch {
+                                activeAlert = .failedToSave
+                            }
                         }
                     }
-                } label: {
-                    Label("Añadir", systemImage: "books.vertical")
-                        .padding()
-                        .frame(maxWidth: 300)
-                        .background(.white)
-                        .foregroundColor(.black)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                    MoreInfoButtonView(showMoreInfoSheet: $showMoreInfoSheet)
                 }
-                .frame(maxWidth: .infinity, alignment: .center)
             }
         }
     }
-
+    
     // MARK: - MoreInfoButtonView
     private struct MoreInfoButtonView: View {
         @Binding var showMoreInfoSheet: Bool
 
         var body: some View {
-            Button {
+            AppGlassButton(title: "Más info", systemImage: "info.circle") {
                 showMoreInfoSheet = true
-            } label: {
-                Label("Más info", systemImage: "info.circle")
-                    .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.bordered)
         }
     }
 }
