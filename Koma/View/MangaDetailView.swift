@@ -59,6 +59,7 @@ struct MangaDetailView: View {
             }
             .sheet(isPresented: $showMoreInfoSheet) {
                 MoreInfoSheetView(
+                    title: manga.title,
                     authors: manga.authors,
                     genres: manga.genres,
                     themes: manga.themes,
