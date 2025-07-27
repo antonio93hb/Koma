@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct MangaSavedView: View {
+struct MangaCollectionView: View {
     
     @Environment(MangaViewModel.self) var viewModel
     @State private var selectedManga: Manga? = nil
@@ -18,7 +18,7 @@ struct MangaSavedView: View {
                         .font(.title3)
                         .fontWeight(.semibold)
                         .foregroundStyle(.secondary)
-                    Text("Swipe on a manga to save it for later.")
+                    Text("Save your favorite mangas by opening their details.")
                         .font(.subheadline)
                         .foregroundStyle(.gray.opacity(0.6))
                         .padding(.horizontal, 30)
@@ -85,6 +85,6 @@ struct MangaSavedView: View {
 
 #Preview {
     let testViewModel = MangaViewModel(network: NetworkTest())
-    return MangaSavedView()
+    return MangaCollectionView()
         .environment(testViewModel)
 }

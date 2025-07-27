@@ -6,11 +6,11 @@ struct ContentView: View {
 
     var body: some View {
         TabView {
-            Tab("Mangas", systemImage: "book") {
+            Tab("Mangas", systemImage: "text.book.closed.fill") {
                 HomeView()
             }
-            Tab("Saved", systemImage: "bookmark.fill") {
-                MangaSavedView()
+            Tab("Collection", systemImage: "books.vertical.fill") {
+                MangaCollectionView()
             }
         }
         .tint(colorScheme == .dark ? .white : .black)
