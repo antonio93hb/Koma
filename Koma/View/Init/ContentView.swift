@@ -12,6 +12,9 @@ struct ContentView: View {
             Tab("Collection", systemImage: "books.vertical.fill") {
                 MangaCollectionView()
             }
+            Tab("Seacrh", systemImage: "magnifyingglass") {
+                MangaSearchView()
+            }
         }
         .tint(colorScheme == .dark ? .white : .black)
         .tabViewStyle(.sidebarAdaptable)
