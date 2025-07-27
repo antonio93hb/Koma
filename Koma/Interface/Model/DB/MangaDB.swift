@@ -32,8 +32,9 @@ final class MangaDB {
     var themes: [ThemeDB]
     var isSaved = false
     var ownedVolumes: Int?
+    var readVolumes: Int?
     
-    init(id: Int, title: String, titleEnglish: String? = nil, titleJapanese: String? = nil, imageURL: String, url: String, startDate: Date? = nil, endDate: Date? = nil, score: Double? = nil, status: String, volumes: Int? = nil, chapters: Int? = nil, synopsis: String? = nil, background: String? = nil, authors: [AuthorDB], genres: [GenreDB], demographics: [DemographicDB], themes: [ThemeDB], isSaved: Bool = false, ownedVolumes: Int? = nil) {
+    init(id: Int, title: String, titleEnglish: String? = nil, titleJapanese: String? = nil, imageURL: String, url: String, startDate: Date? = nil, endDate: Date? = nil, score: Double? = nil, status: String, volumes: Int? = nil, chapters: Int? = nil, synopsis: String? = nil, background: String? = nil, authors: [AuthorDB], genres: [GenreDB], demographics: [DemographicDB], themes: [ThemeDB], isSaved: Bool = false, ownedVolumes: Int? = nil, readVolumes: Int? = nil) {
         self.id = id
         self.title = title
         self.titleEnglish = titleEnglish
@@ -54,6 +55,7 @@ final class MangaDB {
         self.themes = themes
         self.isSaved = isSaved
         self.ownedVolumes = ownedVolumes
+        self.readVolumes = readVolumes
     }
 }
 
@@ -79,7 +81,8 @@ extension MangaDB {
             demographics: demographics.map { $0.toDemographic },
             themes: themes.map { $0.toTheme },
             isSaved: isSaved,
-            ownedVolumes: ownedVolumes
+            ownedVolumes: ownedVolumes,
+            readVolumes: readVolumes
         )
     }
 }

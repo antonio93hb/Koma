@@ -17,6 +17,7 @@ struct MangaDetailView: View {
     @State private var showFullSynopsis = false
     @State private var mangaIsAlreadySaved = false
     @State private var ownedVolumes: Int? = nil
+    @State private var readVolumes: Int? = nil
     @State private var activeAlert: AppAlert?
     @State private var showMoreInfoSheet = false
 
@@ -47,6 +48,7 @@ struct MangaDetailView: View {
                             ownedVolumes: $ownedVolumes,
                             activeAlert: $activeAlert,
                             showMoreInfoSheet: $showMoreInfoSheet,
+                            readVolumes: $readVolumes,
                             viewModel: viewModel
                         )
                     }
@@ -77,6 +79,7 @@ struct MangaDetailView: View {
                 let state = await viewModel.loadMangaState(manga)
                 mangaIsAlreadySaved = state.isSaved
                 ownedVolumes = state.ownedVolumes
+                readVolumes = state.readVolumes
             }
         }
         .toolbar(.hidden, for: .tabBar)
@@ -290,6 +293,7 @@ extension MangaDetailView {
         @Binding var activeAlert: AppAlert?
         @Binding var showMoreInfoSheet: Bool
         @Binding var mangaIsAlreadySaved: Bool
+        @Binding var readVolumes: Int?
         let viewModel: MangaViewModel
 
         var body: some View {
@@ -308,9 +312,9 @@ extension MangaDetailView {
                 }
                 HStack {
                     if manga.volumes != nil {
-                        VolumeStepperView(
+                        OwnedVolumesMenu(
                             ownedVolumes: $ownedVolumes,
-                            activeAlert: $activeAlert,
+                            readVolumes: $readVolumes,
                             maxVolumes: manga.volumes,
                             manga: manga,
                             viewModel: viewModel
@@ -326,6 +330,15 @@ extension MangaDetailView {
                         }
                     }
                     .tint(.red)
+                }
+                // Añadir el control de tomos leídos si hay tomos poseídos
+                if let owned = ownedVolumes, owned > 0 {
+                    ReadVolumeStepperView(
+                        readVolumes: $readVolumes,
+                        maxVolumes: ownedVolumes,
+                        manga: manga,
+                        viewModel: viewModel
+                    )
                 }
             }
         }
@@ -359,6 +372,7 @@ extension MangaDetailView {
         @Binding var ownedVolumes: Int?
         @Binding var activeAlert: AppAlert?
         @Binding var showMoreInfoSheet: Bool
+        @Binding var readVolumes: Int?
         let viewModel: MangaViewModel
 
         var body: some View {
@@ -369,6 +383,7 @@ extension MangaDetailView {
                     activeAlert: $activeAlert,
                     showMoreInfoSheet: $showMoreInfoSheet,
                     mangaIsAlreadySaved: $mangaIsAlreadySaved,
+                    readVolumes: $readVolumes,
                     viewModel: viewModel
                 )
             } else {
@@ -393,6 +408,53 @@ extension MangaDetailView {
             }
         }
     }
+
+    // MARK: - ReadVolumeStepperView
+    private struct ReadVolumeStepperView: View {
+        @Binding var readVolumes: Int?
+        let maxVolumes: Int?
+        let manga: Manga
+        let viewModel: MangaViewModel
+
+        var body: some View {
+            let current = readVolumes ?? 0
+            let isMinusDisabled = current <= 0
+            let isPlusDisabled = maxVolumes != nil ? current >= (maxVolumes ?? 0) : false
+
+            HStack(spacing: 8) {
+                Button {
+                    Task {
+                        let success = await viewModel.decreaseReadVolumes(for: manga)
+                        if success { readVolumes = max(current - 1, 0) }
+                    }
+                } label: {
+                    Image(systemName: "minus.circle.fill")
+                        .font(.title2)
+                        .foregroundColor(isMinusDisabled ? .gray : .orange)
+                }
+
+                Text("\(current)")
+                    .font(.headline)
+                    .frame(minWidth: 30)
+
+                Button {
+                    Task {
+                        let success = await viewModel.increaseReadVolumes(for: manga)
+                        if success { readVolumes = min(current + 1, maxVolumes ?? Int.max) }
+                    }
+                } label: {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.title2)
+                        .foregroundColor(isPlusDisabled ? .gray : .orange)
+                }
+            }
+            .padding(8)
+            .background(.ultraThinMaterial)
+            .clipShape(Capsule())
+            .overlay(Capsule().stroke(Color.orange.opacity(0.3), lineWidth: 1))
+            .shadow(radius: 1)
+        }
+    }
 }
 
 
@@ -410,5 +472,40 @@ private struct MangaDetailPreviewWrapper: View {
     var body: some View {
         MangaDetailView(manga: manga)
             .modelContainer(for: MangaDB.self, inMemory: true)
+    }
+}
+
+
+// MARK: - OwnedVolumesMenu
+private struct OwnedVolumesMenu: View {
+    @Binding var ownedVolumes: Int?
+    @Binding var readVolumes: Int?
+    let maxVolumes: Int?
+    let manga: Manga
+    let viewModel: MangaViewModel
+
+    var body: some View {
+        Menu {
+            if let total = maxVolumes, total > 0 {
+                ForEach(1...total, id: \.self) { tomo in
+                    Button("Tomo \(tomo)") {
+                        Task {
+                            let success = await viewModel.updateOwnedVolumes(for: manga, to: tomo)
+                            if success {
+                                ownedVolumes = tomo
+                                readVolumes = min(readVolumes ?? 0, tomo)
+                            }
+                        }
+                    }
+                }
+            }
+        } label: {
+            Label("Tomos: \(ownedVolumes ?? 0)", systemImage: "books.vertical")
+                .padding(8)
+                .background(.ultraThinMaterial)
+                .clipShape(Capsule())
+                .overlay(Capsule().stroke(Color.blue.opacity(0.3), lineWidth: 1))
+                .shadow(radius: 1)
+        }
     }
 }

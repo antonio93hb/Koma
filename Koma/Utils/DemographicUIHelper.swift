@@ -16,13 +16,13 @@ struct DemographicUIHelper {
     static func style(for demographic: String) -> DemographicStyle {
         switch demographic.lowercased() {
         case "seinen":
-            return DemographicStyle(color: .gray, icon: "person.2.fill")
+            return DemographicStyle(color: .gray, icon: "person.3.fill")
         case "shounen":
-            return DemographicStyle(color: .blue, icon: "figure.run")
+            return DemographicStyle(color: .blue, icon: "figure.run.circle.fill")
         case "shoujo":
-            return DemographicStyle(color: .pink, icon: "heart.fill")
+            return DemographicStyle(color: .pink, icon: "heart.circle.fill")
         case "josei":
-            return DemographicStyle(color: .purple, icon: "person.crop.circle.badge.checkmark")
+            return DemographicStyle(color: .purple, icon: "person.fill")
         case "kids":
             return DemographicStyle(color: .green, icon: "figure.and.child.holdinghands")
         default:

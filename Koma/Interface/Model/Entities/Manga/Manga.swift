@@ -23,6 +23,7 @@ struct Manga: Identifiable, Hashable {
     let themes: [Theme]
     var isSaved = false
     var ownedVolumes: Int?
+    var readVolumes: Int?
     var mangaStatus: MangaStatus {
         MangaStatus(from: status)
     }
@@ -56,7 +57,8 @@ extension Manga {
             demographics: demographics.map { $0.toDemographicDB() },
             themes: themes.map { $0.toThemeDB() },
             isSaved: true,
-            ownedVolumes: ownedVolumes 
+            ownedVolumes: ownedVolumes,
+            readVolumes: readVolumes
         )
     }
 }
