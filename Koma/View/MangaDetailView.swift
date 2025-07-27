@@ -153,14 +153,39 @@ extension MangaDetailView {
         @Environment(\.colorScheme) private var colorScheme
         
         var body: some View {
+            // Define adaptive colors for progress bars
+            let savedColor = colorScheme == .dark ? Color.white.opacity(0.3) : Color.gray.opacity(0.4)
+            let readColor = colorScheme == .dark ? Color.white.opacity(0.5) : Color.black.opacity(0.5)
             VStack(spacing: 4) {
                 if let start = manga.startDate {
                     if let end = manga.endDate {
                         Label("Finalizado el \(end.formatted(date: .long, time: .omitted))", systemImage: "calendar")
-                            .foregroundColor(.red)
+                            .font(.caption)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .background(
+                                Capsule()
+                                    .fill(Color.red.opacity(0.1))
+                            )
+                            .overlay(
+                                Capsule()
+                                    .stroke(Color.red.opacity(0.3), lineWidth: 1)
+                            )
+                            .foregroundColor(.secondary)
                     } else {
                         Label("En emisión desde \(start.formatted(date: .long, time: .omitted))", systemImage: "calendar")
-                            .foregroundColor(.green)
+                            .font(.caption)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .background(
+                                Capsule()
+                                    .fill(Color.green.opacity(0.1))
+                            )
+                            .overlay(
+                                Capsule()
+                                    .stroke(Color.green.opacity(0.3), lineWidth: 1)
+                            )
+                            .foregroundColor(.secondary)
                     }
                 }
 
@@ -178,7 +203,7 @@ extension MangaDetailView {
                     VStack(spacing: 6) {
                         // Barra para tomos guardados
                         ProgressView(value: Float(owned), total: Float(total))
-                            .progressViewStyle(LinearProgressViewStyle(tint: Color.gray.opacity(0.4)))
+                            .progressViewStyle(LinearProgressViewStyle(tint: savedColor))
                             .frame(maxWidth: 200)
                         Text("Guardados: \(owned) / \(total)")
                             .font(.caption)
@@ -187,16 +212,41 @@ extension MangaDetailView {
                         // Barra para tomos leídos si existe readVolumes
                         if let read = readVolumes {
                             ProgressView(value: Float(read), total: Float(total))
-                                .progressViewStyle(LinearProgressViewStyle(tint: Color.black.opacity(0.5)))
+                                .progressViewStyle(LinearProgressViewStyle(tint: readColor))
                                 .frame(maxWidth: 200)
                             Text("Leídos: \(read) / \(total)")
                                 .font(.caption2)
                                 .foregroundStyle(.secondary)
                         }
                     }
-                    if owned == total {
-                        Label("¡Colección completa!", systemImage: "checkmark.seal")
-                            .foregroundColor(.green)
+                    if let read = readVolumes, read == total {
+                        Label("¡Colección leída completamente!", systemImage: "checkmark.seal")
+                            .font(.caption)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .background(
+                                Capsule()
+                                    .fill(Color.green.opacity(0.1))
+                            )
+                            .overlay(
+                                Capsule()
+                                    .stroke(Color.green.opacity(0.3), lineWidth: 1)
+                            )
+                            .foregroundColor(.secondary)
+                    } else if owned == total {
+                        Label("¡Colección completa (guardada)!", systemImage: "checkmark.seal")
+                            .font(.caption)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .background(
+                                Capsule()
+                                    .fill(Color.blue.opacity(0.1))
+                            )
+                            .overlay(
+                                Capsule()
+                                    .stroke(Color.blue.opacity(0.3), lineWidth: 1)
+                            )
+                            .foregroundColor(.secondary)
                     }
                 }
 
@@ -441,10 +491,15 @@ extension MangaDetailView {
         let manga: Manga
         let viewModel: MangaViewModel
 
+        @Environment(\.colorScheme) private var colorScheme
+
         var body: some View {
             let current = readVolumes ?? 0
             let isMinusDisabled = current <= 0
             let isPlusDisabled = maxVolumes != nil ? current >= (maxVolumes ?? 0) : false
+
+            let activeColor = colorScheme == .dark ? Color.white.opacity(0.8) : Color.black.opacity(0.6)
+            let disabledColor = colorScheme == .dark ? Color.white.opacity(0.3) : Color.gray.opacity(0.3)
 
             HStack(spacing: 8) {
                 Button {
@@ -455,7 +510,7 @@ extension MangaDetailView {
                 } label: {
                     Image(systemName: "minus.circle.fill")
                         .font(.title2)
-                        .foregroundColor(isMinusDisabled ? Color.gray.opacity(0.3) : Color.black.opacity(0.6))
+                        .foregroundColor(isMinusDisabled ? disabledColor : activeColor)
                 }
 
                 Text("\(current)")
@@ -470,7 +525,7 @@ extension MangaDetailView {
                 } label: {
                     Image(systemName: "plus.circle.fill")
                         .font(.title2)
-                        .foregroundColor(isPlusDisabled ? Color.gray.opacity(0.3) : Color.black.opacity(0.6))
+                        .foregroundColor(isPlusDisabled ? disabledColor : activeColor)
                 }
             }
             .padding(8)
