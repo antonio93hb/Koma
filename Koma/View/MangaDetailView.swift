@@ -54,10 +54,6 @@ struct MangaDetailView: View {
                     }
                     .frame(maxWidth: 350)
                 }
-                .padding(.horizontal)
-                .padding(.vertical, 16)
-                // Removed unused alert for modifying tomos
-                .alert(item: $activeAlert) { $0.alert }
             }
             .sheet(isPresented: $showMoreInfoSheet) {
                 MoreInfoSheetView(
@@ -80,6 +76,17 @@ struct MangaDetailView: View {
                 mangaIsAlreadySaved = state.isSaved
                 ownedVolumes = state.ownedVolumes
                 readVolumes = state.readVolumes
+            }
+        }
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button {
+                    showMoreInfoSheet = true
+                } label: {
+                    Image(systemName: "info.circle")
+                        .font(.title3)
+                        .foregroundColor(.secondary)
+                }
             }
         }
         .toolbar(.hidden, for: .tabBar)
@@ -234,7 +241,7 @@ extension MangaDetailView {
                             )
                             .foregroundColor(.secondary)
                     } else if owned == total {
-                        Label("¡Colección completa (guardada)!", systemImage: "checkmark.seal")
+                        Label("¡Guardada colección completa!", systemImage: "checkmark.seal")
                             .font(.caption)
                             .padding(.horizontal, 10)
                             .padding(.vertical, 6)
@@ -362,7 +369,7 @@ extension MangaDetailView {
 
         var body: some View {
             VStack {
-                // Primer HStack: Guardado, Más info, Borrar
+                // Primer HStack: Guardado, Borrar
                 HStack {
                     Label("Guardado", systemImage: "checkmark")
                         .font(.subheadline)
@@ -373,7 +380,6 @@ extension MangaDetailView {
                         .clipShape(Capsule())
                         .overlay(Capsule().stroke(Color.gray.opacity(0.4), lineWidth: 1))
                         .shadow(radius: 0.5)
-                    MoreInfoButtonView(showMoreInfoSheet: $showMoreInfoSheet)
                     AppGlassButton(title: "Borrar", systemImage: "trash") {
                         Task {
                             activeAlert = await viewModel.deleteMangaAndGetAlert(manga)
@@ -435,7 +441,6 @@ extension MangaDetailView {
                         mangaIsAlreadySaved = (activeAlert == .saved)
                     }
                 }
-                MoreInfoButtonView(showMoreInfoSheet: $showMoreInfoSheet)
             }
         }
     }
