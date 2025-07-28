@@ -12,6 +12,9 @@ import SwiftUI
 @MainActor
 final class SearchViewModel {
     
+    // Indica si se ha realizado al menos una búsqueda
+    public var hasSearched: Bool = false
+    
     // MARK: - Dependencias
     let network: DataRepository
     
@@ -39,6 +42,7 @@ final class SearchViewModel {
     
     // MARK: - Método para realizar la búsqueda real
     func performSearch(reset: Bool = true) async {
+        hasSearched = true
         await fetchSearchResults(reset: reset)
     }
     
@@ -48,11 +52,9 @@ final class SearchViewModel {
               hasMoreResults,
               !isLoading,
               !isFetchingMore else {
-            print("AHB: ⛔ loadMoreIfNeeded cancelado - condición no cumplida")
             return
         }
         
-        print("AHB ✅ loadMoreIfNeeded → solicitando página \(currentPage + 1)")
         isFetchingMore = true
         defer { isFetchingMore = false }
         
@@ -90,7 +92,6 @@ final class SearchViewModel {
                 searchContains: true
             )
             
-            print("AHB 🟢 JSON enviado: \(query), página: \(currentPage)")
             let response = try await network.searchMangas(query: query, page: currentPage)
             
             if reset {
@@ -100,7 +101,6 @@ final class SearchViewModel {
             }
             
             totalItems = response.metadata.total
-            print("AHB ✅ Página \(currentPage) cargada. Acumulados: \(searchResults.count)/\(totalItems)")
             
             if !reset {
                 currentPage += 1

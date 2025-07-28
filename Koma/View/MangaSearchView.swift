@@ -10,39 +10,43 @@ import SwiftUI
 struct MangaSearchView: View {
     @Environment(SearchViewModel.self) var searchViewModel
 
-       var body: some View {
-           NavigationStack {
-               VStack {
-                   // Barra de búsqueda
-                   TextField("Buscar manga...", text: Binding(
-                       get: { searchViewModel.searchTitle },
-                       set: { searchViewModel.searchTitle = $0 }
-                   ))
-                   .textFieldStyle(RoundedBorderTextFieldStyle())
-                   .padding()
-                   .onSubmit {
-                       Task { await searchViewModel.performSearch() }
-                   }
-                   // Botón buscar
-                   Button("Buscar") {
-                       Task {
-                           await searchViewModel.performSearch()
-                       }
-                   }
-                   .padding()
+    var body: some View {
+        NavigationStack {
+            VStack {
+                // Barra de búsqueda y botón
+                HStack {
+                    TextField("Buscar manga...", text: Binding(
+                        get: { searchViewModel.searchTitle },
+                        set: { searchViewModel.searchTitle = $0 }
+                    ))
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .onSubmit {
+                        Task { await searchViewModel.performSearch() }
+                    }
+                    Button(action: {
+                        Task {
+                            await searchViewModel.performSearch()
+                        }
+                    }) {
+                        Image(systemName: "magnifyingglass")
+                            .imageScale(.large)
+                            .padding(.leading, 8)
+                    }
+                }
+                .padding()
                    
-                   // Indicador de carga
-                   if searchViewModel.isLoading {
-                       ProgressView("Buscando...")
-                           .padding()
-                   }
-                   
-                   // Mensaje de error
-                   if let error = searchViewModel.errorMessage {
-                       Text(error)
-                           .foregroundColor(.red)
-                           .padding()
-                   }
+                // Indicador de carga
+                if searchViewModel.isLoading {
+                    ProgressView("Buscando...")
+                        .padding()
+                }
+                
+                // Mensaje de error
+                if let error = searchViewModel.errorMessage {
+                    Text(error)
+                        .foregroundColor(.red)
+                        .padding()
+                }
                    
                    Menu {
                        ForEach(GenreUIHelper.allGenres, id: \.self) { genre in
@@ -67,6 +71,22 @@ struct MangaSearchView: View {
                        }
                    }
                    .padding(.vertical, 4)
+                   
+                   if searchViewModel.searchResults.isEmpty && !searchViewModel.isLoading && searchViewModel.hasSearched {
+                       VStack(spacing: 8) {
+                           Image(systemName: "questionmark.circle")
+                               .resizable()
+                               .scaledToFit()
+                               .frame(width: 40, height: 40)
+                               .foregroundColor(.secondary.opacity(0.6))
+                           
+                           Text("No se han encontrado resultados")
+                               .foregroundColor(.secondary)
+                               .font(.subheadline)
+                       }
+                       .padding()
+                       .frame(maxWidth: .infinity, alignment: .center)
+                   }
                    
                    // Resultados usando ScrollView y LazyVStack
                    ScrollView {
