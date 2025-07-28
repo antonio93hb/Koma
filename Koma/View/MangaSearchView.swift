@@ -11,7 +11,7 @@ struct MangaSearchView: View {
     @Environment(SearchViewModel.self) var searchViewModel
 
        var body: some View {
-           NavigationView {
+           NavigationStack {
                VStack {
                    // Barra de búsqueda
                    TextField("Buscar manga...", text: Binding(
@@ -46,7 +46,14 @@ struct MangaSearchView: View {
                    
                    // Resultados usando MangaRow
                    List(searchViewModel.searchResults, id: \.id) { manga in
-                       MangaRow(manga: manga)
+                       NavigationLink(destination: MangaDetailView(manga: manga)) {
+                           MangaRow(manga: manga)
+                       }
+                       .onAppear {
+                           Task {
+                               await searchViewModel.loadMoreIfNeeded(current: manga)
+                           }
+                       }
                    }
                }
                .navigationTitle("Buscar")

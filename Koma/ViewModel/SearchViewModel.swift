@@ -25,6 +25,11 @@ final class SearchViewModel {
     var selectedThemes: [String] = []
     var selectedDemographics: [String] = []
     
+    private var currentPage = 1
+    private var totalItems = 0
+    
+    var hasMoreResults: Bool { searchResults.count < totalItems }
+    
     // MARK: - Inicializador
     init(network: DataRepository = NetworkRepository()) {
         self.network = network
@@ -36,7 +41,10 @@ final class SearchViewModel {
         defer { isLoading = false }
         errorMessage = nil
         
-        if reset { searchResults = [] }
+        if reset {
+            currentPage = 1
+            searchResults = []
+        }
         
         let query = CustomSearchDTO(
             searchTitle: searchTitle.isEmpty ? nil : searchTitle,
@@ -49,8 +57,16 @@ final class SearchViewModel {
         )
         
         do {
-            let response = try await network.searchMangas(query: query, page: 1)
-            searchResults = response.items
+            let response = try await network.searchMangas(query: query, page: currentPage)
+            if reset {
+                searchResults = response.items
+            } else {
+                searchResults += response.items
+            }
+            totalItems = response.metadata.total
+            if hasMoreResults {
+                currentPage += 1
+            }
         } catch let error as NetworkError {
             errorMessage = error.errorDescription
         } catch let error as MangaError {
@@ -58,5 +74,12 @@ final class SearchViewModel {
         } catch {
             errorMessage = "Error inesperado: \(error.localizedDescription)"
         }
+    }
+    
+    func loadMoreIfNeeded(current manga: Manga) async {
+        guard let index = searchResults.firstIndex(where: { $0.id == manga.id }) else { return }
+        let thresholdIndex = searchResults.index(searchResults.endIndex, offsetBy: -5, limitedBy: searchResults.startIndex) ?? searchResults.startIndex
+        guard index >= thresholdIndex, hasMoreResults, !isLoading else { return }
+        await performSearch(reset: false)
     }
 }

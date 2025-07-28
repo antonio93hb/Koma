@@ -12,7 +12,7 @@ struct ContentView: View {
             Tab("Collection", systemImage: "books.vertical.fill") {
                 MangaCollectionView()
             }
-            Tab("Seacrh", systemImage: "magnifyingglass") {
+            Tab("Search", systemImage: "magnifyingglass") {
                 MangaSearchView()
             }
         }
