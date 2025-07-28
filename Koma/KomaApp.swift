@@ -12,7 +12,8 @@ import SwiftData
 struct KomaApp: App {
     @State private var rootManager = RootManager()
     @State private var mangaListViewModel = MangaViewModel()
-    
+    @State private var searchViewModel = SearchViewModel()
+
     var sharedModelContainer: ModelContainer {
         let schema = Schema([MangaDB.self])
         
@@ -30,6 +31,7 @@ struct KomaApp: App {
             RootView()
                 .environment(rootManager)
                 .environment(mangaListViewModel)
+                .environment(searchViewModel)
         }
         .modelContainer(sharedModelContainer)
     }

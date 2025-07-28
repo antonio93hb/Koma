@@ -5,8 +5,8 @@ struct RootView: View {
     @Environment(RootManager.self) var rootManager
     @Environment(\.modelContext) private var modelContext
     
-    //@State private var viewModel = MangaListViewModel()
-    @Environment(MangaViewModel.self) var viewModel
+    @Environment(MangaViewModel.self) var mangaViewModel
+    @Environment(SearchViewModel.self) var searchViewModel
 
     var body: some View {
         Group {
@@ -17,9 +17,9 @@ struct RootView: View {
             }
         }
         .task {
-            if viewModel.context == nil {
-                viewModel.context = modelContext
-                await viewModel.loadIfNeeded()
+            if mangaViewModel.context == nil {
+                mangaViewModel.context = modelContext
+                await mangaViewModel.loadIfNeeded()
             }
         }
     }

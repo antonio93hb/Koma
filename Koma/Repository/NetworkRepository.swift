@@ -10,25 +10,27 @@ struct NetworkRepository: DataRepository, NetworkInteractor {
     
     func getAllMangas(page: Int) async throws -> MangaResponse {
         return try await getJSON(
-            request: .get(.allMangas(page: page)),
+            request: .get(url: .allMangas(page: page)),
             type: MangaResponseDTO.self
         ).toMangaResponse
         
     }
     func getBestMangas() async throws -> MangaResponse {
         return try await getJSON(
-            request: .get(.bestMangas()),
+            request: .get(url: .bestMangas()),
             type: MangaResponseDTO.self
         ).toMangaResponse
     }
-    
-//    func getBestMangasDB() async throws -> [Manga] {
-//        return try await getJSON(
-//            request: .get(.bestMangas()),
-//            type: MangaResponseDTO.self
-//        ).toMangaResponse
-//    }
+    func searchMangas(query: CustomSearchDTO, page: Int) async throws -> MangaResponse {
+        // Codificar el cuerpo de la petición
+        let request = URLRequest.post(
+            url: .searchManga(),
+            body: query
+        )
+
+        return try await getJSON(
+            request: request,
+            type: MangaResponseDTO.self
+        ).toMangaResponse
+    }
 }
-
-
-//¿Como puedo pasar MangaResponseDTO a [Manga] -> Clase 33 min 1:14

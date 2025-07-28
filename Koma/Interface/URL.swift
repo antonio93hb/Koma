@@ -16,6 +16,11 @@ extension URL {
         createURL(path: "/list/bestMangas")
     }
     
+    // https://mymanga-acacademy-5607149ebe3d.herokuapp.com/search/manga
+    static func searchManga() -> URL {
+        createURL(path: "/search/manga")
+    }
+    
     private static func createURL(path: String, queryItems: [URLQueryItem]? = nil) -> URL {
         var components = URLComponents()
         components.scheme = "https"
