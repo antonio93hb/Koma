@@ -1,5 +1,5 @@
 ////
-////  SerchViewModel.swift
+////  SearchViewModel.swift
 ////  Koma
 ////
 ////  Created by Antonio Hernández Barbadilla on 27/7/25.
@@ -30,27 +30,33 @@ final class SearchViewModel {
         self.network = network
     }
     
-    // MARK: - Método básico para probar la búsqueda
-    func testSearch() async {
+    // MARK: - Método para realizar la búsqueda real
+    func performSearch(reset: Bool = true) async {
         isLoading = true
         defer { isLoading = false }
         errorMessage = nil
         
+        if reset { searchResults = [] }
+        
         let query = CustomSearchDTO(
-            searchTitle: "Naruto",
+            searchTitle: searchTitle.isEmpty ? nil : searchTitle,
             searchAuthorFirstName: nil,
             searchAuthorLastName: nil,
-            searchGenres: nil,
-            searchThemes: nil,
-            searchDemographics: nil,
+            searchGenres: selectedGenres.isEmpty ? nil : selectedGenres,
+            searchThemes: selectedThemes.isEmpty ? nil : selectedThemes,
+            searchDemographics: selectedDemographics.isEmpty ? nil : selectedDemographics,
             searchContains: true
         )
         
         do {
             let response = try await network.searchMangas(query: query, page: 1)
             searchResults = response.items
+        } catch let error as NetworkError {
+            errorMessage = error.errorDescription
+        } catch let error as MangaError {
+            errorMessage = error.errorDescription
         } catch {
-            errorMessage = "Error realizando la búsqueda: \(error.localizedDescription)"
+            errorMessage = "Error inesperado: \(error.localizedDescription)"
         }
     }
 }

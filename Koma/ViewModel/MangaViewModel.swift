@@ -63,6 +63,8 @@ extension MangaViewModel {
         do {
             let response = try await network.getBestMangas()
             bestMangas = response.items
+        } catch let networkError as NetworkError {
+            errorLoadingBest = networkError.errorDescription
         } catch {
             errorLoadingBest = MangaError.unknown(error).errorDescription
         }
@@ -236,6 +238,7 @@ extension MangaViewModel {
             await refreshSavedMangas()
             return true
         } catch {
+            errorMessage = MangaError.unknown(error).errorDescription
             return false
         }
     }
@@ -260,6 +263,7 @@ extension MangaViewModel {
             await refreshSavedMangas()
             return true
         } catch {
+            errorMessage = MangaError.unknown(error).errorDescription
             return false
         }
     }
@@ -274,6 +278,7 @@ extension MangaViewModel {
             await refreshSavedMangas()
             return true
         } catch {
+            errorMessage = MangaError.unknown(error).errorDescription
             return false
         }
     }
@@ -328,6 +333,9 @@ extension MangaViewModel {
     /// Elimina un manga y devuelve el AppAlert correspondiente.
     func deleteMangaAndGetAlert(_ manga: Manga) async -> AppAlert {
         let success = await deleteManga(manga)
+        if !success {
+            errorMessage = MangaError.custom("No se pudo eliminar el manga").errorDescription
+        }
         return success ? .deleted : .failedToDelete
     }
 
@@ -360,6 +368,8 @@ private extension MangaViewModel {
             }
             totalItems = response.metadata.total
             currentPage += 1
+        } catch let networkError as NetworkError {
+            errorMessage = networkError.errorDescription
         } catch {
             errorMessage = MangaError.unknown(error).errorDescription
         }

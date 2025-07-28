@@ -8,42 +8,44 @@
 import SwiftUI
 
 struct MangaSearchView: View {
-    @Environment(SearchViewModel.self) private var viewModel
-       
+    @Environment(SearchViewModel.self) var searchViewModel
+
        var body: some View {
            NavigationView {
                VStack {
                    // Barra de búsqueda
                    TextField("Buscar manga...", text: Binding(
-                       get: { "" },
-                       set: { viewModel.searchTitle = $0 }
+                       get: { searchViewModel.searchTitle },
+                       set: { searchViewModel.searchTitle = $0 }
                    ))
                    .textFieldStyle(RoundedBorderTextFieldStyle())
                    .padding()
-                   
+                   .onSubmit {
+                       Task { await searchViewModel.performSearch() }
+                   }
                    // Botón buscar
                    Button("Buscar") {
                        Task {
-                           await viewModel.testSearch() // ✅ Usamos método de prueba
+                           await searchViewModel.performSearch()
                        }
                    }
                    .padding()
                    
                    // Indicador de carga
-                   if viewModel.isLoading {
+                   if searchViewModel.isLoading {
                        ProgressView("Buscando...")
                            .padding()
                    }
                    
                    // Mensaje de error
-                   if let error = viewModel.errorMessage {
+                   if let error = searchViewModel.errorMessage {
                        Text(error)
                            .foregroundColor(.red)
                            .padding()
                    }
                    
                    // Resultados
-                   List(viewModel.searchResults, id: \.id) { manga in
+                   List(searchViewModel.searchResults, id: \.id) { manga in
                        Text(manga.title)
                    }
                }
