@@ -44,9 +44,9 @@ struct MangaSearchView: View {
                            .padding()
                    }
                    
-                   // Resultados
+                   // Resultados usando MangaRow
                    List(searchViewModel.searchResults, id: \.id) { manga in
-                       Text(manga.title)
+                       MangaRow(manga: manga)
                    }
                }
                .navigationTitle("Buscar")
