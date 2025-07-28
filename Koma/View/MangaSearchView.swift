@@ -44,16 +44,45 @@ struct MangaSearchView: View {
                            .padding()
                    }
                    
-                   // Resultados usando MangaRow
-                   List(searchViewModel.searchResults, id: \.id) { manga in
-                       NavigationLink(destination: MangaDetailView(manga: manga)) {
-                           MangaRow(manga: manga)
-                       }
-                       .onAppear {
-                           Task {
-                               await searchViewModel.loadMoreIfNeeded(current: manga)
+                   Menu {
+                       ForEach(GenreUIHelper.allGenres, id: \.self) { genre in
+                           Button {
+                               searchViewModel.selectedGenres = [genre]
+                               Task { await searchViewModel.performSearch() }
+                           } label: {
+                               HStack {
+                                   TagLabel(text: genre, style: GenreUIHelper.style(for: genre))
+                                   if searchViewModel.selectedGenres.last == genre {
+                                       Image(systemName: "checkmark")
+                                           .foregroundColor(.green)
+                                   }
+                               }
                            }
                        }
+                   } label: {
+                       if let selected = searchViewModel.selectedGenres.last {
+                           TagLabel(text: selected, style: GenreUIHelper.style(for: selected))
+                       } else {
+                           AppGlassButton(title: "Género", systemImage: "line.3.horizontal.decrease.circle") { }
+                       }
+                   }
+                   .padding(.vertical, 4)
+                   
+                   // Resultados usando ScrollView y LazyVStack
+                   ScrollView {
+                       LazyVStack {
+                           ForEach(searchViewModel.searchResults, id: \.id) { manga in
+                               NavigationLink(destination: MangaDetailView(manga: manga)) {
+                                   MangaRow(manga: manga)
+                                       .onAppear {
+                                           if manga.id == searchViewModel.searchResults.last?.id {
+                                               Task { await searchViewModel.loadMoreIfNeeded(current: manga) }
+                                           }
+                                       }
+                               }
+                           }
+                       }
+                       .padding()
                    }
                }
                .navigationTitle("Buscar")

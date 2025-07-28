@@ -102,16 +102,7 @@ struct MoreInfoSheetView: View {
                                 ScrollView(.horizontal, showsIndicators: false) {
                                     HStack(spacing: 8) {
                                         ForEach(demographics, id: \.id) { demo in
-                                            let style = DemographicUIHelper.style(for: demo.name)
-                                            Label(demo.name, systemImage: style.icon)
-                                                .font(.caption)
-                                                .padding(.horizontal, 10)
-                                                .padding(.vertical, 6)
-                                                .background(
-                                                    RoundedRectangle(cornerRadius: 12)
-                                                        .fill(style.color.opacity(0.15))
-                                                )
-                                                .foregroundColor(style.color)
+                                            TagLabel(text: demo.name, style: DemographicUIHelper.style(for: demo.name))
                                         }
                                     }
                                     .padding(.horizontal)
@@ -124,16 +115,7 @@ struct MoreInfoSheetView: View {
                                     .font(.headline)
                                     .padding(.horizontal)
                                 FlowLayout(items: genres.map { $0.genre }) { genreName in
-                                    let style = GenreUIHelper.style(for: genreName)
-                                    Label(genreName, systemImage: style.icon)
-                                        .font(.caption)
-                                        .padding(.horizontal, 10)
-                                        .padding(.vertical, 6)
-                                        .background(
-                                            RoundedRectangle(cornerRadius: 12)
-                                                .fill(style.color.opacity(0.15))
-                                        )
-                                        .foregroundColor(style.color)
+                                    TagLabel(text: genreName, style: GenreUIHelper.style(for: genreName))
                                 }
                             }
                         }
@@ -143,16 +125,7 @@ struct MoreInfoSheetView: View {
                                     .font(.headline)
                                     .padding(.horizontal)
                                 FlowLayout(items: themes.map { $0.name }) { themeName in
-                                    let style = ThemeUIHelper.style(for: themeName)
-                                    Label(style.name, systemImage: style.icon)
-                                        .font(.caption)
-                                        .padding(.horizontal, 10)
-                                        .padding(.vertical, 6)
-                                        .background(
-                                            RoundedRectangle(cornerRadius: 12)
-                                                .fill(style.color.opacity(0.15))
-                                        )
-                                        .foregroundColor(style.color)
+                                    TagLabel(text: themeName, style: ThemeUIHelper.style(for: themeName))
                                 }
                             }
                         }

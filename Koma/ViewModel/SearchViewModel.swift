@@ -20,6 +20,8 @@ final class SearchViewModel {
     var isLoading = false
     var errorMessage: String?
     
+    private var isFetchingMore = false
+    
     var searchTitle: String = ""
     var selectedGenres: [String] = []
     var selectedThemes: [String] = []
@@ -37,36 +39,61 @@ final class SearchViewModel {
     
     // MARK: - Método para realizar la búsqueda real
     func performSearch(reset: Bool = true) async {
-        isLoading = true
-        defer { isLoading = false }
+        await fetchSearchResults(reset: reset)
+    }
+    
+    // MARK: - Paginación
+    func loadMoreIfNeeded(current manga: Manga) async {
+        guard manga.id == searchResults.last?.id,
+              hasMoreResults,
+              !isLoading,
+              !isFetchingMore else {
+            print("AHB: ⛔ loadMoreIfNeeded cancelado - condición no cumplida")
+            return
+        }
+        
+        print("AHB ✅ loadMoreIfNeeded → solicitando página \(currentPage + 1)")
+        isFetchingMore = true
+        defer { isFetchingMore = false }
+        
+        await fetchSearchResults(reset: false)
+    }
+    
+    // MARK: - Lógica central de búsqueda
+    private func fetchSearchResults(reset: Bool = false) async {
+        guard !isLoading else { return }
+        //isLoading = true
         errorMessage = nil
         
         if reset {
             currentPage = 1
-            searchResults = []
+            searchResults.removeAll()
+        } else {
+            currentPage += 1
         }
         
-        let query = CustomSearchDTO(
-            searchTitle: searchTitle.isEmpty ? nil : searchTitle,
-            searchAuthorFirstName: nil,
-            searchAuthorLastName: nil,
-            searchGenres: selectedGenres.isEmpty ? nil : selectedGenres,
-            searchThemes: selectedThemes.isEmpty ? nil : selectedThemes,
-            searchDemographics: selectedDemographics.isEmpty ? nil : selectedDemographics,
-            searchContains: true
-        )
-        
         do {
+            let query = CustomSearchDTO(
+                searchTitle: searchTitle.isEmpty ? nil : searchTitle,
+                searchAuthorFirstName: nil,
+                searchAuthorLastName: nil,
+                searchGenres: selectedGenres.isEmpty ? nil : selectedGenres,
+                searchThemes: selectedThemes.isEmpty ? nil : selectedThemes,
+                searchDemographics: selectedDemographics.isEmpty ? nil : selectedDemographics,
+                searchContains: true
+            )
+            
+            print("AHB 🟢 JSON enviado: \(query), página: \(currentPage)")
             let response = try await network.searchMangas(query: query, page: currentPage)
-            if reset {
+            
+            if currentPage == 1 {
                 searchResults = response.items
             } else {
                 searchResults += response.items
             }
+            
             totalItems = response.metadata.total
-            if hasMoreResults {
-                currentPage += 1
-            }
+            print("AHB ✅ Página \(currentPage) cargada. Acumulados: \(searchResults.count)/\(totalItems)")
         } catch let error as NetworkError {
             errorMessage = error.errorDescription
         } catch let error as MangaError {
@@ -74,12 +101,7 @@ final class SearchViewModel {
         } catch {
             errorMessage = "Error inesperado: \(error.localizedDescription)"
         }
-    }
-    
-    func loadMoreIfNeeded(current manga: Manga) async {
-        guard let index = searchResults.firstIndex(where: { $0.id == manga.id }) else { return }
-        let thresholdIndex = searchResults.index(searchResults.endIndex, offsetBy: -5, limitedBy: searchResults.startIndex) ?? searchResults.startIndex
-        guard index >= thresholdIndex, hasMoreResults, !isLoading else { return }
-        await performSearch(reset: false)
+        
+        isLoading = false
     }
 }
