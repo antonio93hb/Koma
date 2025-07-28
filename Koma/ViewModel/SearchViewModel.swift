@@ -61,15 +61,22 @@ final class SearchViewModel {
     
     // MARK: - Lógica central de búsqueda
     private func fetchSearchResults(reset: Bool = false) async {
-        guard !isLoading else { return }
-        //isLoading = true
-        errorMessage = nil
-        
         if reset {
+            isLoading = true
+            errorMessage = nil
             currentPage = 1
             searchResults.removeAll()
         } else {
-            currentPage += 1
+            isFetchingMore = true
+            errorMessage = nil
+        }
+        
+        defer {
+            if reset {
+                isLoading = false
+            } else {
+                isFetchingMore = false
+            }
         }
         
         do {
@@ -86,7 +93,7 @@ final class SearchViewModel {
             print("AHB 🟢 JSON enviado: \(query), página: \(currentPage)")
             let response = try await network.searchMangas(query: query, page: currentPage)
             
-            if currentPage == 1 {
+            if reset {
                 searchResults = response.items
             } else {
                 searchResults += response.items
@@ -94,6 +101,11 @@ final class SearchViewModel {
             
             totalItems = response.metadata.total
             print("AHB ✅ Página \(currentPage) cargada. Acumulados: \(searchResults.count)/\(totalItems)")
+            
+            if !reset {
+                currentPage += 1
+            }
+            
         } catch let error as NetworkError {
             errorMessage = error.errorDescription
         } catch let error as MangaError {
@@ -101,7 +113,5 @@ final class SearchViewModel {
         } catch {
             errorMessage = "Error inesperado: \(error.localizedDescription)"
         }
-        
-        isLoading = false
     }
 }
