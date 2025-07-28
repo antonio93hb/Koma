@@ -47,30 +47,39 @@ struct MangaSearchView: View {
                         .foregroundColor(.red)
                         .padding()
                 }
-                   
-                   Menu {
-                       ForEach(GenreUIHelper.allGenres, id: \.self) { genre in
-                           Button {
-                               searchViewModel.selectedGenres = [genre]
-                               Task { await searchViewModel.performSearch() }
-                           } label: {
-                               HStack {
-                                   TagLabel(text: genre, style: GenreUIHelper.style(for: genre))
-                                   if searchViewModel.selectedGenres.last == genre {
-                                       Image(systemName: "checkmark")
-                                           .foregroundColor(.green)
-                                   }
-                               }
-                           }
-                       }
-                   } label: {
-                       if let selected = searchViewModel.selectedGenres.last {
-                           TagLabel(text: selected, style: GenreUIHelper.style(for: selected))
-                       } else {
-                           AppGlassButton(title: "Género", systemImage: "line.3.horizontal.decrease.circle") { }
-                       }
-                   }
-                   .padding(.vertical, 4)
+                HStack{
+                    FilterMenu(
+                        title: "Género",
+                        items: GenreUIHelper.allGenres,
+                        selectedItems: Binding(
+                            get: { searchViewModel.selectedGenres },
+                            set: { searchViewModel.selectedGenres = $0 }
+                        ),
+                        styleProvider: { GenreUIHelper.style(for: $0) }
+                    )
+
+                    FilterMenu(
+                        title: "Temas",
+                        items: ThemeUIHelper.allThemes,
+                        selectedItems: Binding(
+                            get: { searchViewModel.selectedThemes },
+                            set: { searchViewModel.selectedThemes = $0 }
+                        ),
+                        styleProvider: { ThemeUIHelper.style(for: $0) }
+                    )
+                    
+                    
+                    FilterMenu(
+                        title: "Demografía",
+                        items: DemographicUIHelper.allDemographics,
+                        selectedItems: Binding(
+                            get: { searchViewModel.selectedDemographics },
+                            set: { searchViewModel.selectedDemographics = $0 }
+                        ),
+                        styleProvider: { DemographicUIHelper.style(for: $0) }
+                    )
+                }
+            
                    
                    if searchViewModel.searchResults.isEmpty && !searchViewModel.isLoading && searchViewModel.hasSearched {
                        VStack(spacing: 8) {

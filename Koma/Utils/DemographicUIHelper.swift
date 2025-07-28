@@ -11,17 +11,19 @@ struct DemographicUIHelper {
     static func style(for demographic: String) -> TagStyle {
         switch demographic.lowercased() {
         case "seinen":
-            return TagStyle(color: .gray, icon: "person.3.fill")
+            return TagStyle(color: .gray, icon: "briefcase.fill")
         case "shounen":
             return TagStyle(color: .blue, icon: "figure.run.circle.fill")
         case "shoujo":
             return TagStyle(color: .pink, icon: "heart.circle.fill")
         case "josei":
-            return TagStyle(color: .purple, icon: "person.fill")
+            return TagStyle(color: .purple, icon: "person.2.fill")
         case "kids":
             return TagStyle(color: .green, icon: "figure.and.child.holdinghands")
         default:
             return TagStyle(color: .secondary, icon: "tag.fill")
         }
     }
+    
+    static let allDemographics = ["Seinen", "Shounen", "Shoujo", "Josei", "Kids"]
 }

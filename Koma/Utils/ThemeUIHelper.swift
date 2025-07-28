@@ -15,7 +15,7 @@ struct ThemeUIHelper {
         case "mythology": return TagStyle(color: .purple, icon: "book.fill")
         case "psychological": return TagStyle(color: .pink, icon: "brain.head.profile")
         case "historical": return TagStyle(color: .brown, icon: "clock.fill")
-        case "samurai": return TagStyle(color: .orange, icon: "sword")
+        case "samurai": return TagStyle(color: .orange, icon: "figure.wave")
         case "romantic subtext": return TagStyle(color: .pink, icon: "heart.fill")
         case "school": return TagStyle(color: .blue, icon: "building.columns.fill")
         case "adult cast": return TagStyle(color: .gray, icon: "person.2.fill")
@@ -51,7 +51,7 @@ struct ThemeUIHelper {
         case "mahou shoujo": return TagStyle(color: .pink, icon: "wand.and.stars")
         case "high stakes game": return TagStyle(color: .red, icon: "die.face.5.fill")
         case "cgdct": return TagStyle(color: .mint, icon: "face.smiling.inverse")
-        case "organized crime": return TagStyle(color: .gray, icon: "handcuffs")
+        case "organized crime": return TagStyle(color: .gray, icon: "person.3.sequence")
         case "detective": return TagStyle(color: .blue, icon: "magnifyingglass")
         case "performing arts": return TagStyle(color: .orange, icon: "theatermasks.fill")
         case "medical": return TagStyle(color: .red, icon: "cross.case.fill")
@@ -64,4 +64,57 @@ struct ThemeUIHelper {
         default: return TagStyle(color: .secondary, icon: "tag.fill")
         }
     }
+    static let allThemes: [String] = [
+        "Gore",
+        "Military",
+        "Mythology",
+        "Psychological",
+        "Historical",
+        "Samurai",
+        "Romantic Subtext",
+        "School",
+        "Adult Cast",
+        "Parody",
+        "Super Power",
+        "Team Sports",
+        "Isekai",
+        "Vampire",
+        "Space",
+        "Idols (Female)",
+        "Idols (Male)",
+        "Workplace",
+        "Survival",
+        "Childcare",
+        "Iyashikei",
+        "Reincarnation",
+        "Showbiz",
+        "Anthropomorphic",
+        "Love Polygon",
+        "Music",
+        "Mecha",
+        "Combat Sports",
+        "Gag Humor",
+        "Crossdressing",
+        "Reverse Harem",
+        "Martial Arts",
+        "Visual Arts",
+        "Harem",
+        "Otaku Culture",
+        "Time Travel",
+        "Video Game",
+        "Strategy Game",
+        "Mahou Shoujo",
+        "High Stakes Game",
+        "CGDCT",
+        "Organized Crime",
+        "Detective",
+        "Performing Arts",
+        "Medical",
+        "Memoir",
+        "Villainess",
+        "Racing",
+        "Pets",
+        "Magical Sex Shift",
+        "Educational"
+    ]
 }
