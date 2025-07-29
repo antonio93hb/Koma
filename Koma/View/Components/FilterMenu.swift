@@ -38,7 +38,7 @@ struct FilterMenu: View {
                 let style = styleProvider(lastSelected)
                 AppGlassButton(title: lastSelected, systemImage: style.icon) { }
             } else {
-                AppGlassButton(title: title, systemImage: "line.3.horizontal.decrease.circle") { }
+                AppGlassButton(title: title) { }
             }
         }
         .padding(.bottom, 4)
