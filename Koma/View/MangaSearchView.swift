@@ -36,12 +36,6 @@ struct MangaSearchView: View {
                 }
                 .padding()
                    
-                // Indicador de carga
-                if searchViewModel.isLoading {
-                    ProgressView("Buscando...")
-                        .padding()
-                }
-                
                 // Mensaje de error
                 if let error = searchViewModel.errorMessage {
                     Text(error)
@@ -72,7 +66,7 @@ struct MangaSearchView: View {
                     }
                     
                     if isExpanded {
-                        HStack(spacing: 12) {
+                        HStack {
                             FilterMenu(
                                 title: "Género",
                                 items: GenreUIHelper.allGenres,
@@ -103,8 +97,28 @@ struct MangaSearchView: View {
                                 styleProvider: { DemographicUIHelper.style(for: $0) }
                             )
                         }
-                        .padding(.horizontal)
+                        .padding()
                         .transition(.opacity.combined(with: .slide))
+                        
+                        // Mostrar etiquetas seleccionadas agrupadas por categoría
+                        FilterTagSection(
+                            title: "Género",
+                            items: searchViewModel.selectedGenres,
+                            styleProvider: { GenreUIHelper.style(for: $0) }
+                        )
+
+                        FilterTagSection(
+                            title: "Temas",
+                            items: searchViewModel.selectedThemes,
+                            styleProvider: { ThemeUIHelper.style(for: $0) }
+                        )
+
+                        FilterTagSection(
+                            title: "Demografía",
+                            items: searchViewModel.selectedDemographics,
+                            styleProvider: { DemographicUIHelper.style(for: $0) }
+                        )
+
                     }
                 }
                 .padding()

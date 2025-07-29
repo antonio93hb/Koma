@@ -13,34 +13,29 @@ struct FilterMenu: View {
     let styleProvider: (String) -> TagStyle
     
     var body: some View {
-        Menu {
-            ForEach(items, id: \.self) { item in
-                Button {
-                    if selectedItems.contains(item) {
-                        selectedItems.removeAll { $0 == item }
-                    } else {
-                        selectedItems.append(item)
-                    }
-                } label: {
-                    HStack {
-                        let style = styleProvider(item)
-                        Label(item, systemImage: style.icon)
-                            .foregroundColor(style.color)
-                        if selectedItems.contains(item) {
-                            Image(systemName: "checkmark")
-                                .foregroundColor(.green)
+        VStack(alignment: .leading, spacing: 6) {
+            // 🔹 Botón del filtro en línea
+            HStack {
+                Menu {
+                    ForEach(items, id: \.self) { item in
+                        Button {
+                            if selectedItems.contains(item) {
+                                selectedItems.removeAll { $0 == item }
+                            } else {
+                                selectedItems.append(item)
+                            }
+                        } label: {
+                            HStack {
+                                let style = styleProvider(item)
+                                Label(item, systemImage: style.icon)
+                                    .foregroundColor(style.color)
+                            }
                         }
                     }
+                } label: {
+                    AppGlassButton(title: title) { }
                 }
             }
-        } label: {
-            if let lastSelected = selectedItems.last {
-                let style = styleProvider(lastSelected)
-                AppGlassButton(title: lastSelected, systemImage: style.icon) { }
-            } else {
-                AppGlassButton(title: title) { }
-            }
         }
-        .padding(.bottom, 4)
     }
 }
