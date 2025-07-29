@@ -15,16 +15,25 @@ struct TagStyle {
 struct TagLabel: View {
     let text: String
     let style: TagStyle
+    var onRemove: (() -> Void)? = nil
 
     var body: some View {
-        Label(text, systemImage: style.icon)
-            .font(.caption)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 6)
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(style.color.opacity(0.15))
-            )
-            .foregroundColor(style.color)
+        HStack(spacing: 4) {
+            Label(text, systemImage: style.icon)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(style.color.opacity(0.2))
+                .clipShape(Capsule())
+
+            // ✅ Solo muestra la X si hay un callback definido
+            if let onRemove = onRemove {
+                Button(action: onRemove) {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                }
+                .buttonStyle(.plain)
+            }
+        }
     }
 }

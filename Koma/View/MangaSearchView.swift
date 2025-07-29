@@ -103,22 +103,30 @@ struct MangaSearchView: View {
                         // Mostrar etiquetas seleccionadas agrupadas por categoría
                         FilterTagSection(
                             title: "Género",
-                            items: searchViewModel.selectedGenres,
+                            items: Binding(
+                                get: { searchViewModel.selectedGenres },
+                                set: { searchViewModel.selectedGenres = $0 }
+                            ),
                             styleProvider: { GenreUIHelper.style(for: $0) }
                         )
 
                         FilterTagSection(
                             title: "Temas",
-                            items: searchViewModel.selectedThemes,
+                            items: Binding(
+                                get: { searchViewModel.selectedThemes },
+                                set: { searchViewModel.selectedThemes = $0 }
+                            ),
                             styleProvider: { ThemeUIHelper.style(for: $0) }
                         )
 
                         FilterTagSection(
                             title: "Demografía",
-                            items: searchViewModel.selectedDemographics,
+                            items: Binding(
+                                get: { searchViewModel.selectedDemographics },
+                                set: { searchViewModel.selectedDemographics = $0 }
+                            ),
                             styleProvider: { DemographicUIHelper.style(for: $0) }
                         )
-
                     }
                 }
                 .padding()

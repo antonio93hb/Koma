@@ -8,7 +8,7 @@ import SwiftUI
 
 struct FilterTagSection: View {
     let title: String
-    let items: [String]
+    @Binding var items: [String]
     let styleProvider: (String) -> TagStyle
     
     var body: some View {
@@ -20,7 +20,13 @@ struct FilterTagSection: View {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 6) {
                         ForEach(items, id: \.self) { item in
-                            TagLabel(text: item, style: styleProvider(item))
+                            TagLabel(
+                                text: item,
+                                style: styleProvider(item),
+                                onRemove: {
+                                    items.removeAll { $0 == item }
+                                }
+                            )
                         }
                     }
                 }
