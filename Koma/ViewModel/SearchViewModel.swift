@@ -35,15 +35,56 @@ final class SearchViewModel {
     
     var hasMoreResults: Bool { searchResults.count < totalItems }
     
+    // Propiedad calculada para saber si hay filtros válidos
+    var hasValidFilters: Bool {
+        !searchTitle.isEmpty ||
+        !selectedGenres.isEmpty ||
+        !selectedThemes.isEmpty ||
+        !selectedDemographics.isEmpty
+    }
+    
     // MARK: - Inicializador
     init(network: DataRepository = NetworkRepository()) {
         self.network = network
     }
     
-    // MARK: - Método para realizar la búsqueda real
+    // MARK: - Búsqueda
     func performSearch(reset: Bool = true) async {
         hasSearched = true
         await fetchSearchResults(reset: reset)
+    }
+    
+    // Limpiar búsqueda y filtros
+    func clearSearch() {
+        searchResults.removeAll()
+        hasSearched = false
+        searchTitle = ""
+        selectedGenres.removeAll()
+        selectedThemes.removeAll()
+        selectedDemographics.removeAll()
+    }
+
+    // Buscar si hay filtros válidos, limpiar si no
+    func searchIfNeeded(reset: Bool = true) async {
+        if hasValidFilters {
+            await performSearch(reset: reset)
+        } else {
+            clearSearch()
+        }
+    }
+
+    // Actualizar filtros y buscar si corresponde
+    func updateFilters(genres: [String]? = nil, themes: [String]? = nil, demographics: [String]? = nil) async {
+        if let genres = genres {
+            selectedGenres = genres
+        }
+        if let themes = themes {
+            selectedThemes = themes
+        }
+        if let demographics = demographics {
+            selectedDemographics = demographics
+        }
+        await searchIfNeeded(reset: true)
     }
     
     // MARK: - Paginación

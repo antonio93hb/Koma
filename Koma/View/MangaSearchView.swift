@@ -22,22 +22,10 @@ struct MangaSearchView: View {
                     ))
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                     .onSubmit {
-                        Task {
-                            if !searchViewModel.searchTitle.isEmpty ||
-                               !searchViewModel.selectedGenres.isEmpty ||
-                               !searchViewModel.selectedThemes.isEmpty ||
-                               !searchViewModel.selectedDemographics.isEmpty {
-                                await searchViewModel.performSearch()
-                            }
-                        }                    }
+                        Task { await searchViewModel.searchIfNeeded() }
+                    }
                     Button(action: {
-                        Task {
-                            if !searchViewModel.searchTitle.isEmpty ||
-                               !searchViewModel.selectedGenres.isEmpty ||
-                               !searchViewModel.selectedThemes.isEmpty ||
-                               !searchViewModel.selectedDemographics.isEmpty {
-                                await searchViewModel.performSearch()
-                            }                        }
+                        Task { await searchViewModel.searchIfNeeded() }
                     }) {
                         Image(systemName: "magnifyingglass")
                             .imageScale(.large)
@@ -45,12 +33,7 @@ struct MangaSearchView: View {
                     }
                     if !searchViewModel.searchTitle.isEmpty || searchViewModel.hasSearched {
                         Button(action: {
-                            searchViewModel.searchTitle = ""
-                            searchViewModel.hasSearched = false
-                            searchViewModel.searchResults = []
-                            searchViewModel.selectedGenres = []
-                            searchViewModel.selectedThemes = []
-                            searchViewModel.selectedDemographics = []
+                            searchViewModel.clearSearch()
                         }) {
                             Image(systemName: "xmark.circle.fill")
                                 .imageScale(.large)
@@ -97,15 +80,8 @@ struct MangaSearchView: View {
                                 selectedItems: Binding(
                                     get: { searchViewModel.selectedGenres },
                                     set: { newValue in
-                                        searchViewModel.selectedGenres = newValue
-                                        Task {
-                                            if !searchViewModel.searchTitle.isEmpty ||
-                                               !searchViewModel.selectedGenres.isEmpty ||
-                                               !searchViewModel.selectedThemes.isEmpty ||
-                                               !searchViewModel.selectedDemographics.isEmpty {
-                                                await searchViewModel.performSearch()
-                                            }
-                                        }                                    }
+                                        Task { await searchViewModel.updateFilters(genres: newValue) }
+                                    }
                                 ),
                                 styleProvider: { GenreUIHelper.style(for: $0) }
                             )
@@ -116,15 +92,8 @@ struct MangaSearchView: View {
                                 selectedItems: Binding(
                                     get: { searchViewModel.selectedThemes },
                                     set: { newValue in
-                                        searchViewModel.selectedThemes = newValue
-                                        Task {
-                                            if !searchViewModel.searchTitle.isEmpty ||
-                                               !searchViewModel.selectedGenres.isEmpty ||
-                                               !searchViewModel.selectedThemes.isEmpty ||
-                                               !searchViewModel.selectedDemographics.isEmpty {
-                                                await searchViewModel.performSearch()
-                                            }
-                                        }                                    }
+                                        Task { await searchViewModel.updateFilters(themes: newValue) }
+                                    }
                                 ),
                                 styleProvider: { ThemeUIHelper.style(for: $0) }
                             )
@@ -135,15 +104,7 @@ struct MangaSearchView: View {
                                 selectedItems: Binding(
                                     get: { searchViewModel.selectedDemographics },
                                     set: { newValue in
-                                        searchViewModel.selectedDemographics = newValue
-                                        Task {
-                                            if !searchViewModel.searchTitle.isEmpty ||
-                                               !searchViewModel.selectedGenres.isEmpty ||
-                                               !searchViewModel.selectedThemes.isEmpty ||
-                                               !searchViewModel.selectedDemographics.isEmpty {
-                                                await searchViewModel.performSearch()
-                                            }
-                                        }
+                                        Task { await searchViewModel.updateFilters(demographics: newValue) }
                                     }
                                 ),
                                 styleProvider: { DemographicUIHelper.style(for: $0) }
@@ -158,16 +119,7 @@ struct MangaSearchView: View {
                             items: Binding(
                                 get: { searchViewModel.selectedGenres },
                                 set: { newValue in
-                                    searchViewModel.selectedGenres = newValue
-                                    if searchViewModel.searchTitle.isEmpty &&
-                                        searchViewModel.selectedGenres.isEmpty &&
-                                        searchViewModel.selectedThemes.isEmpty &&
-                                        searchViewModel.selectedDemographics.isEmpty {
-                                        searchViewModel.searchResults = []
-                                        searchViewModel.hasSearched = false
-                                    } else {
-                                        Task { await searchViewModel.performSearch() }
-                                    }
+                                    Task { await searchViewModel.updateFilters(genres: newValue) }
                                 }
                             ),
                             styleProvider: { GenreUIHelper.style(for: $0) }
@@ -178,16 +130,7 @@ struct MangaSearchView: View {
                             items: Binding(
                                 get: { searchViewModel.selectedThemes },
                                 set: { newValue in
-                                    searchViewModel.selectedThemes = newValue
-                                    if searchViewModel.searchTitle.isEmpty &&
-                                        searchViewModel.selectedGenres.isEmpty &&
-                                        searchViewModel.selectedThemes.isEmpty &&
-                                        searchViewModel.selectedDemographics.isEmpty {
-                                        searchViewModel.searchResults = []
-                                        searchViewModel.hasSearched = false
-                                    } else {
-                                        Task { await searchViewModel.performSearch() }
-                                    }
+                                    Task { await searchViewModel.updateFilters(themes: newValue) }
                                 }
                             ),
                             styleProvider: { ThemeUIHelper.style(for: $0) }
@@ -198,16 +141,7 @@ struct MangaSearchView: View {
                             items: Binding(
                                 get: { searchViewModel.selectedDemographics },
                                 set: { newValue in
-                                    searchViewModel.selectedDemographics = newValue
-                                    if searchViewModel.searchTitle.isEmpty &&
-                                        searchViewModel.selectedGenres.isEmpty &&
-                                        searchViewModel.selectedThemes.isEmpty &&
-                                        searchViewModel.selectedDemographics.isEmpty {
-                                        searchViewModel.searchResults = []
-                                        searchViewModel.hasSearched = false
-                                    } else {
-                                        Task { await searchViewModel.performSearch() }
-                                    }
+                                    Task { await searchViewModel.updateFilters(demographics: newValue) }
                                 }
                             ),
                             styleProvider: { DemographicUIHelper.style(for: $0) }
