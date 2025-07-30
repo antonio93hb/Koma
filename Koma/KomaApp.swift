@@ -15,7 +15,7 @@ struct KomaApp: App {
     @State private var searchViewModel = SearchViewModel()
 
     var sharedModelContainer: ModelContainer {
-        let schema = Schema([MangaDB.self])
+        let schema = Schema([MangaDB.self, SearchDB.self])
         
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
         

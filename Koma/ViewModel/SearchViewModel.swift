@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftUI
+import SwiftData
 
 @Observable
 @MainActor
@@ -17,9 +18,11 @@ final class SearchViewModel {
     
     // MARK: - Dependencias
     let network: DataRepository
+    var context: ModelContext?
     
     // MARK: - Estado de búsqueda
     var searchResults: [Manga] = []
+    var searchHistory: [SearchDB] = []
     var isLoading = false
     var errorMessage: String?
     
@@ -52,6 +55,7 @@ final class SearchViewModel {
     func performSearch(reset: Bool = true) async {
         hasSearched = true
         await fetchSearchResults(reset: reset)
+        await saveSearch()
     }
     
     // Limpiar búsqueda y filtros
@@ -87,6 +91,75 @@ final class SearchViewModel {
         await searchIfNeeded(reset: true)
     }
     
+    // MARK: - Guardar búsqueda en SwiftData
+    func saveSearch() async {
+        guard let context = context else {
+            print("AHB: ❌ No hay contexto disponible para guardar la búsqueda")
+            return
+        }
+
+        print("AHB: ℹ️ Se va a guardar la búsqueda con query: '\(searchTitle)', géneros: \(selectedGenres), temas: \(selectedThemes), demografía: \(selectedDemographics)")
+
+        let newSearch = SearchDB(
+            query: searchTitle,
+            genres: selectedGenres,
+            themes: selectedThemes,
+            demographics: selectedDemographics
+        )
+
+        context.insert(newSearch)
+        print("AHB: ℹ️ Búsqueda insertada en el contexto")
+
+        do {
+            try context.save()
+            print("AHB: ✅ Búsqueda guardada: \(searchTitle), Géneros: \(selectedGenres), Temas: \(selectedThemes), Demografía: \(selectedDemographics)")
+            print("AHB: ℹ️ Refrescando historial de búsquedas...")
+            await loadSearchHistory()   // 👈 🔥 Refresca inmediatamente el historial
+        } catch {
+            print("AHB: ❌ Error al guardar búsqueda: \(error.localizedDescription)")
+        }
+    }
+    
+    // MARK: - Cargar historial de búsquedas desde SwiftData
+    func loadSearchHistory() async {
+        guard let context else {
+            print("AHB: ❌ No hay contexto disponible para cargar el historial")
+            return
+        }
+        print("AHB: 🔍 Contexto usado para load: \(context)")
+        do {
+            let descriptor = FetchDescriptor<SearchDB>(sortBy: [SortDescriptor(\.query)])
+            let results = try context.fetch(descriptor)
+            searchHistory = results
+            print("AHB: ✅ Historial recuperado con \(results.count) elementos: \(results.map { $0.query })")
+        } catch {
+            print("❌ Error al cargar historial de búsquedas: \(error.localizedDescription)")
+        }
+    }
+    
+    // Elimina una búsqueda concreta del historial
+    func deleteSearchHistory(_ search: SearchDB) async {
+        guard let context = context else { return }
+        do {
+            context.delete(search)
+            try context.save()
+            searchHistory.removeAll { $0.id == search.id }
+            print("🗑️ Búsqueda eliminada: \(search.query)")
+        } catch {
+            print("❌ Error eliminando búsqueda: \(error.localizedDescription)")
+        }
+    }
+
+    // Realiza una búsqueda a partir de un elemento del historial
+    func performSearch(from search: SearchDB) async {
+        searchTitle = search.query
+        selectedGenres = search.genres
+        selectedThemes = search.themes
+        selectedDemographics = search.demographics
+        hasSearched = true
+        await searchIfNeeded()
+    }
+
     // MARK: - Paginación
     func loadMoreIfNeeded(current manga: Manga) async {
         guard manga.id == searchResults.last?.id,
@@ -156,5 +229,3 @@ final class SearchViewModel {
         }
     }
 }
-
-

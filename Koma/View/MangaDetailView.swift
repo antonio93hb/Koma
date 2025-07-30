@@ -12,7 +12,6 @@ import SwiftData
 struct MangaDetailView: View {
 
     @Environment(MangaViewModel.self) var viewModel
-    @Environment(\.modelContext) private var context
     let manga: Manga
     @State private var showFullSynopsis = false
     @State private var mangaIsAlreadySaved = false

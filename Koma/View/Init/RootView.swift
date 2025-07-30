@@ -21,6 +21,10 @@ struct RootView: View {
                 mangaViewModel.context = modelContext
                 await mangaViewModel.loadIfNeeded()
             }
+            if searchViewModel.context == nil {
+                searchViewModel.context = modelContext
+                await searchViewModel.loadSearchHistory()
+            }
         }
     }
 }
