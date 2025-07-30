@@ -14,11 +14,31 @@ struct MangaSearchView: View {
     
     var body: some View {
         NavigationStack {
-            VStack {
+            VStack(spacing: 0) {
                 searchBar
                 filtersSection
-                historySection
-                resultsSection
+                if !searchViewModel.hasSearched {
+                    Text("Historial de búsquedas")
+                        .font(.headline)
+                        .padding(.horizontal)
+
+                    ScrollView {
+                        historySection
+                    }
+
+                } else if searchViewModel.searchResults.isEmpty {
+                    noResultsSection
+
+                } else {
+                    Text("Resultados:")
+                        .font(.headline)
+                        .padding(.horizontal)
+
+                    ScrollView {
+                        resultsSection
+                    }
+                }
+                
             }
             .navigationTitle("Buscar")
         }
@@ -171,9 +191,6 @@ struct MangaSearchView: View {
         // Historial de búsquedas
         if !searchViewModel.hasSearched {
             VStack(alignment: .leading, spacing: 4) {
-                Text("Historial de búsquedas")
-                    .font(.headline)
-                    .padding(.horizontal)
                 ForEach(searchViewModel.searchHistory, id: \.id) { search in
                     SearchHistoryRow(
                         history: search,
@@ -192,14 +209,7 @@ struct MangaSearchView: View {
     
     @ViewBuilder
     private var resultsSection: some View {
-        // Resultados usando ScrollView y LazyVStack
         if !searchViewModel.searchResults.isEmpty {
-            Text("Resultados: ")
-                .font(.headline)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal)
-        }
-        ScrollView {
             LazyVStack {
                 ForEach(searchViewModel.searchResults, id: \.id) { manga in
                     NavigationLink(destination: MangaDetailView(manga: manga)) {
@@ -213,6 +223,24 @@ struct MangaSearchView: View {
                 }
             }
             .padding()
+        }
+    }
+    
+    @ViewBuilder
+    private var noResultsSection: some View {
+        if searchViewModel.hasSearched && searchViewModel.searchResults.isEmpty {
+            VStack(spacing: 8) {
+                Image(systemName: "magnifyingglass.circle")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 40, height: 40)
+                    .foregroundColor(.secondary.opacity(0.6))
+                
+                Text("No se han encontrado resultados")
+                    .foregroundColor(.secondary)
+                    .font(.subheadline)
+            }
+            .padding(.top, 30) // solo espacio superior
         }
     }
 }
