@@ -115,7 +115,7 @@ struct MangaSearchView: View {
                         selectedItems: Binding(
                             get: { searchViewModel.selectedGenres },
                             set: { newValue in
-                                Task { await searchViewModel.updateFilters(genres: newValue) }
+                                searchViewModel.selectedGenres = newValue
                             }
                         ),
                         styleProvider: { GenreUIHelper.style(for: $0) }
@@ -127,7 +127,7 @@ struct MangaSearchView: View {
                         selectedItems: Binding(
                             get: { searchViewModel.selectedThemes },
                             set: { newValue in
-                                Task { await searchViewModel.updateFilters(themes: newValue) }
+                                searchViewModel.selectedThemes = newValue
                             }
                         ),
                         styleProvider: { ThemeUIHelper.style(for: $0) }
@@ -139,7 +139,7 @@ struct MangaSearchView: View {
                         selectedItems: Binding(
                             get: { searchViewModel.selectedDemographics },
                             set: { newValue in
-                                Task { await searchViewModel.updateFilters(demographics: newValue) }
+                                searchViewModel.selectedDemographics = newValue
                             }
                         ),
                         styleProvider: { DemographicUIHelper.style(for: $0) }
@@ -154,7 +154,7 @@ struct MangaSearchView: View {
                     items: Binding(
                         get: { searchViewModel.selectedGenres },
                         set: { newValue in
-                            Task { await searchViewModel.updateFilters(genres: newValue) }
+                            searchViewModel.selectedGenres = newValue
                         }
                     ),
                     styleProvider: { GenreUIHelper.style(for: $0) }
@@ -165,7 +165,7 @@ struct MangaSearchView: View {
                     items: Binding(
                         get: { searchViewModel.selectedThemes },
                         set: { newValue in
-                            Task { await searchViewModel.updateFilters(themes: newValue) }
+                            searchViewModel.selectedThemes = newValue
                         }
                     ),
                     styleProvider: { ThemeUIHelper.style(for: $0) }
@@ -176,7 +176,7 @@ struct MangaSearchView: View {
                     items: Binding(
                         get: { searchViewModel.selectedDemographics },
                         set: { newValue in
-                            Task { await searchViewModel.updateFilters(demographics: newValue) }
+                            searchViewModel.selectedDemographics = newValue
                         }
                     ),
                     styleProvider: { DemographicUIHelper.style(for: $0) }
@@ -190,20 +190,26 @@ struct MangaSearchView: View {
     private var historySection: some View {
         // Historial de búsquedas
         if !searchViewModel.hasSearched {
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(spacing: 0) {
                 ForEach(searchViewModel.searchHistory, id: \.id) { search in
-                    SearchHistoryRow(
-                        history: search,
-                        onDelete: {
-                            Task { await searchViewModel.deleteSearchHistory(search) }
-                        },
-                        onSelect: {
-                            Task { await searchViewModel.performSearch(from: search) }
-                        }
-                    )
+                    VStack(spacing: 0) {
+                        SearchHistoryRow(
+                            history: search,
+                            onDelete: {
+                                Task { await searchViewModel.deleteSearchHistory(search) }
+                            },
+                            onSelect: {
+                                Task { await searchViewModel.performSearch(from: search) }
+                            }
+                        )
+                        Divider()
+                            .background(Color.secondary.opacity(0.3))
+                            .padding(.leading)
+                    }
                 }
             }
-            .padding(.horizontal)
+            .background(Color(UIColor.systemBackground))
+            .padding()
         }
     }
     
