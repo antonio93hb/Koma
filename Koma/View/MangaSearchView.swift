@@ -18,25 +18,28 @@ struct MangaSearchView: View {
                 filtersSection
                 if searchViewModel.isLoading {
                     loadingSection
-                } else if searchViewModel.shouldShowHistory {
-                    Text("Historial de búsquedas")
-                        .font(.headline)
-                        .padding(.horizontal)
+                } else {
+                    // Encabezado según el estado
+                    if searchViewModel.shouldShowHistory {
+                        Text("Historial de búsquedas")
+                            .font(.headline)
+                            .padding(.horizontal)
+                    } else if searchViewModel.shouldShowResults {
+                        Text("Resultados:")
+                            .font(.headline)
+                            .padding(.horizontal)
+                    }
 
                     ScrollView {
-                        historySection
-                    }
-                } else if searchViewModel.shouldShowNoResults {
-                    ScrollView {
-                        noResultsSection
-                    }
-                } else if searchViewModel.shouldShowResults {
-                    Text("Resultados:")
-                        .font(.headline)
-                        .padding(.horizontal)
-
-                    ScrollView {
-                        resultsSection
+                        Group {
+                            if searchViewModel.shouldShowHistory {
+                                historySection
+                            } else if searchViewModel.shouldShowNoResults {
+                                noResultsSection
+                            } else if searchViewModel.shouldShowResults {
+                                resultsSection
+                            }
+                        }
                     }
                 }
                 
@@ -189,29 +192,25 @@ struct MangaSearchView: View {
     
     @ViewBuilder
     private var historySection: some View {
-        // Historial de búsquedas
-        if !searchViewModel.hasSearched {
-            VStack(spacing: 0) {
-                ForEach(searchViewModel.searchHistory, id: \.id) { search in
-                    VStack(spacing: 0) {
-                        SearchHistoryRow(
-                            history: search,
-                            onDelete: {
-                                Task { await searchViewModel.deleteSearchHistory(search) }
-                            },
-                            onSelect: {
-                                Task { await searchViewModel.performSearch(from: search) }
-                            }
-                        )
-                        Divider()
-                            .background(Color.secondary.opacity(0.3))
-                            .padding(.leading)
-                    }
+        VStack(spacing: 0) {
+            ForEach(searchViewModel.searchHistory, id: \.id) { search in
+                VStack(spacing: 0) {
+                    SearchHistoryRow(
+                        history: search,
+                        onDelete: {
+                            Task { await searchViewModel.deleteSearchHistory(search) }
+                        },
+                        onSelect: {
+                            Task { await searchViewModel.performSearch(from: search) }
+                        }
+                    )
+                    Divider()
+                        .background(Color.secondary.opacity(0.3))
+                        .padding(.leading)
                 }
             }
-            .background(Color(UIColor.systemBackground))
-            .padding()
         }
+        .padding(.horizontal)
     }
     
     @ViewBuilder
@@ -229,7 +228,6 @@ struct MangaSearchView: View {
                     }
                 }
             }
-            .padding()
         }
     }
     
@@ -249,19 +247,17 @@ struct MangaSearchView: View {
     
     @ViewBuilder
     private var noResultsSection: some View {
-        if searchViewModel.hasSearched && !searchViewModel.isLoading && searchViewModel.searchResults.isEmpty {
-            VStack(spacing: 8) {
-                Image(systemName: "magnifyingglass.circle")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 40, height: 40)
-                    .foregroundColor(.secondary.opacity(0.6))
-                
-                Text("No se han encontrado resultados")
-                    .foregroundColor(.secondary)
-                    .font(.subheadline)
-            }
-            .padding()
+        VStack(spacing: 8) {
+            Image(systemName: "magnifyingglass.circle")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 40, height: 40)
+                .foregroundColor(.secondary.opacity(0.6))
+
+            Text("No se han encontrado resultados")
+                .foregroundColor(.secondary)
+                .font(.subheadline)
         }
+        .padding()
     }
 }
