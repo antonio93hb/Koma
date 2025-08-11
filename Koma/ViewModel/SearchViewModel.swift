@@ -28,23 +28,32 @@ final class SearchViewModel {
     
     private var isFetchingMore = false
     
-    var searchTitle: String = ""
-    var selectedGenres: [String] = []
-    var selectedThemes: [String] = []
-    var selectedDemographics: [String] = []
+    var filters = SearchFilters()
     
+    var searchTitle: String {
+        get { filters.title }
+        set { filters.title = newValue }
+    }
+    var selectedGenres: [String] {
+        get { filters.genres }
+        set { filters.genres = newValue }
+    }
+    var selectedThemes: [String] {
+        get { filters.themes }
+        set { filters.themes = newValue }
+    }
+    var selectedDemographics: [String] {
+        get { filters.demographics }
+        set { filters.demographics = newValue }
+    }
     private var currentPage = 1
     private var totalItems = 0
     
     var hasMoreResults: Bool { searchResults.count < totalItems }
     
-    // Propiedad calculada para saber si hay filtros válidos
-    var hasValidFilters: Bool {
-        !searchTitle.isEmpty ||
-        !selectedGenres.isEmpty ||
-        !selectedThemes.isEmpty ||
-        !selectedDemographics.isEmpty
-    }
+    var shouldShowHistory: Bool { !hasSearched && !isLoading }
+    var shouldShowResults: Bool { hasSearched && !isLoading && !searchResults.isEmpty }
+    var shouldShowNoResults: Bool { hasSearched && !isLoading && searchResults.isEmpty }
     
     // MARK: - Inicializador
     init(network: DataRepository = NetworkRepository()) {
@@ -52,71 +61,90 @@ final class SearchViewModel {
     }
     
     // MARK: - Búsqueda
+    func clearSearch() {
+        searchResults.removeAll()
+        hasSearched = false
+        filters = SearchFilters() // limpia todo
+    }
+    
+    func searchIfNeeded(reset: Bool = true) async {
+        if filters.isEmpty {
+            clearSearch()
+        } else {
+            await performSearch(reset: reset)
+        }
+    }
+    
+    func updateFilters(genres: [String]? = nil, themes: [String]? = nil, demographics: [String]? = nil) async {
+        if let genres { filters.genres = genres }
+        if let themes { filters.themes = themes }
+        if let demographics { filters.demographics = demographics }
+        await searchIfNeeded(reset: true)
+    }
+    
     func performSearch(reset: Bool = true) async {
         hasSearched = true
         await fetchSearchResults(reset: reset)
         await saveSearch()
     }
     
-    // Limpiar búsqueda y filtros
-    func clearSearch() {
-        searchResults.removeAll()
-        hasSearched = false
-        searchTitle = ""
-        selectedGenres.removeAll()
-        selectedThemes.removeAll()
-        selectedDemographics.removeAll()
-    }
-
-    // Buscar si hay filtros válidos, limpiar si no
-    func searchIfNeeded(reset: Bool = true) async {
-        if hasValidFilters {
-            await performSearch(reset: reset)
-        } else {
-            clearSearch()
-        }
-    }
-
-    // Actualizar filtros y buscar si corresponde
-    func updateFilters(genres: [String]? = nil, themes: [String]? = nil, demographics: [String]? = nil) async {
-        if let genres = genres {
-            selectedGenres = genres
-        }
-        if let themes = themes {
-            selectedThemes = themes
-        }
-        if let demographics = demographics {
-            selectedDemographics = demographics
-        }
-        await searchIfNeeded(reset: true)
-    }
-    
-    // MARK: - Guardar búsqueda en SwiftData
+    // MARK: - Guardar búsqueda en SwiftData (evita duplicados y actualiza)
     func saveSearch() async {
-        guard let context = context else {
+        guard let context else {
             print("AHB: ❌ No hay contexto disponible para guardar la búsqueda")
             return
         }
 
-        print("AHB: ℹ️ Se va a guardar la búsqueda con query: '\(searchTitle)', géneros: \(selectedGenres), temas: \(selectedThemes), demografía: \(selectedDemographics)")
+        let storedQuery  = filters.title.trimmingCharacters(in: .whitespacesAndNewlines)
+        let compareQuery = filters.title.normalized()
+        let targetGenres = Set(filters.genres)
+        let targetThemes = Set(filters.themes)
+        let targetDemo   = Set(filters.demographics)
 
-        let newSearch = SearchDB(
-            query: searchTitle,
-            genres: selectedGenres,
-            themes: selectedThemes,
-            demographics: selectedDemographics
-        )
-
-        context.insert(newSearch)
-        print("AHB: ℹ️ Búsqueda insertada en el contexto")
+        print("AHB: ℹ️ Guardar búsqueda -> query: '\(storedQuery)', géneros: \(filters.genres), temas: \(filters.themes), demografía: \(filters.demographics)")
 
         do {
+            let all = try context.fetch(FetchDescriptor<SearchDB>())
+
+            if let existing = all.first(where: { item in
+                item.query.normalized() == compareQuery &&
+                Set(item.genres) == targetGenres &&
+                Set(item.themes) == targetThemes &&
+                Set(item.demographics) == targetDemo
+            }) {
+                existing.query        = storedQuery
+                existing.genres       = filters.genres
+                existing.themes       = filters.themes
+                existing.demographics = filters.demographics
+                existing.createdAt    = Date()
+                try context.save()
+                print("AHB: 🔁 Búsqueda existente actualizada (reciente): \(existing.query)")
+                await loadSearchHistory()
+                return
+            }
+
+            let newSearch = SearchDB(
+                query: storedQuery,
+                genres: filters.genres,
+                themes: filters.themes,
+                demographics: filters.demographics
+            )
+            context.insert(newSearch)
             try context.save()
-            print("AHB: ✅ Búsqueda guardada: \(searchTitle), Géneros: \(selectedGenres), Temas: \(selectedThemes), Demografía: \(selectedDemographics)")
-            print("AHB: ℹ️ Refrescando historial de búsquedas...")
-            await loadSearchHistory()   // 👈 🔥 Refresca inmediatamente el historial
+            print("AHB: ✅ Búsqueda guardada: \(storedQuery)")
+            await loadSearchHistory()
+
+            if searchHistory.count > 20 {
+                let toDelete = searchHistory
+                    .sorted { $0.createdAt > $1.createdAt }
+                    .dropFirst(20)
+                toDelete.forEach { context.delete($0) }
+                try? context.save()
+                await loadSearchHistory()
+                print("AHB: 🧹 Historial recortado a 20 elementos")
+            }
         } catch {
-            print("AHB: ❌ Error al guardar búsqueda: \(error.localizedDescription)")
+            print("AHB: ❌ Error al guardar/actualizar búsqueda: \(error.localizedDescription)")
         }
     }
     
@@ -128,7 +156,7 @@ final class SearchViewModel {
         }
         print("AHB: 🔍 Contexto usado para load: \(context)")
         do {
-            let descriptor = FetchDescriptor<SearchDB>(sortBy: [SortDescriptor(\.query)])
+            let descriptor = FetchDescriptor<SearchDB>(sortBy: [SortDescriptor(\.createdAt, order: .reverse)])
             let results = try context.fetch(descriptor)
             searchHistory = results
             print("AHB: ✅ Historial recuperado con \(results.count) elementos: \(results.map { $0.query })")
@@ -149,7 +177,7 @@ final class SearchViewModel {
             print("❌ Error eliminando búsqueda: \(error.localizedDescription)")
         }
     }
-
+    
     // Realiza una búsqueda a partir de un elemento del historial
     func performSearch(from search: SearchDB) async {
         searchTitle = search.query
@@ -159,7 +187,7 @@ final class SearchViewModel {
         hasSearched = true
         await searchIfNeeded()
     }
-
+    
     // MARK: - Paginación
     func loadMoreIfNeeded(current manga: Manga) async {
         guard manga.id == searchResults.last?.id,
@@ -179,47 +207,22 @@ final class SearchViewModel {
     private func fetchSearchResults(reset: Bool = false) async {
         if reset {
             isLoading = true
-            errorMessage = nil
             currentPage = 1
             searchResults.removeAll()
         } else {
             isFetchingMore = true
-            errorMessage = nil
         }
-        
-        defer {
-            if reset {
-                isLoading = false
-            } else {
-                isFetchingMore = false
-            }
-        }
+        errorMessage = nil
+        defer { reset ? (isLoading = false) : (isFetchingMore = false) }
         
         do {
-            let query = CustomSearchDTO(
-                searchTitle: searchTitle.isEmpty ? nil : searchTitle,
-                searchAuthorFirstName: nil,
-                searchAuthorLastName: nil,
-                searchGenres: selectedGenres.isEmpty ? nil : selectedGenres,
-                searchThemes: selectedThemes.isEmpty ? nil : selectedThemes,
-                searchDemographics: selectedDemographics.isEmpty ? nil : selectedDemographics,
-                searchContains: true
+            let response = try await network.searchMangas(
+                query: filters.toDTO(),
+                page: currentPage
             )
-            
-            let response = try await network.searchMangas(query: query, page: currentPage)
-            
-            if reset {
-                searchResults = response.items
-            } else {
-                searchResults += response.items
-            }
-            
+            if reset { searchResults = response.items } else { searchResults += response.items }
             totalItems = response.metadata.total
-            
-            if !reset {
-                currentPage += 1
-            }
-            
+            currentPage += 1
         } catch let error as NetworkError {
             errorMessage = error.errorDescription
         } catch let error as MangaError {

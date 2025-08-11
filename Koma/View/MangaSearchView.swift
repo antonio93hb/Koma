@@ -14,10 +14,12 @@ struct MangaSearchView: View {
     
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
+            VStack {
                 searchBar
                 filtersSection
-                if !searchViewModel.hasSearched {
+                if searchViewModel.isLoading {
+                    loadingSection
+                } else if !searchViewModel.hasSearched {
                     Text("Historial de búsquedas")
                         .font(.headline)
                         .padding(.horizontal)
@@ -27,7 +29,9 @@ struct MangaSearchView: View {
                     }
 
                 } else if searchViewModel.searchResults.isEmpty {
-                    noResultsSection
+                    ScrollView {
+                        noResultsSection
+                    }
 
                 } else {
                     Text("Resultados:")
@@ -233,8 +237,22 @@ struct MangaSearchView: View {
     }
     
     @ViewBuilder
+    private var loadingSection: some View {
+        VStack(spacing: 12) {
+            ProgressView()
+                .progressViewStyle(CircularProgressViewStyle())
+                .scaleEffect(1.2)
+            Text("Buscando…")
+                .foregroundColor(.secondary)
+                .font(.subheadline)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+        .padding()
+    }
+    
+    @ViewBuilder
     private var noResultsSection: some View {
-        if searchViewModel.hasSearched && searchViewModel.searchResults.isEmpty {
+        if searchViewModel.hasSearched && !searchViewModel.isLoading && searchViewModel.searchResults.isEmpty {
             VStack(spacing: 8) {
                 Image(systemName: "magnifyingglass.circle")
                     .resizable()
@@ -246,7 +264,7 @@ struct MangaSearchView: View {
                     .foregroundColor(.secondary)
                     .font(.subheadline)
             }
-            .padding(.top, 30) // solo espacio superior
+            .padding()
         }
     }
 }

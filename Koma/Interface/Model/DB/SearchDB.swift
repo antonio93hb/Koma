@@ -15,6 +15,7 @@ final class SearchDB {
     var genres: [String]
     var themes: [String]
     var demographics: [String]
+    var createdAt: Date
 
     init(query: String,
          genres: [String] = [],
@@ -25,5 +26,6 @@ final class SearchDB {
         self.genres = genres
         self.themes = themes
         self.demographics = demographics
+        self.createdAt = Date()
     }
 }
