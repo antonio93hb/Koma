@@ -13,44 +13,34 @@ import SwiftData
 @MainActor
 final class SearchViewModel {
     
-    // Indica si se ha realizado al menos una búsqueda
-    public var hasSearched: Bool = false
-    
     // MARK: - Dependencias
     let network: DataRepository
     var context: ModelContext?
-    
-    // MARK: - Estado de búsqueda
-    var searchResults: [Manga] = []
-    var searchHistory: [SearchDB] = []
+
+    // MARK: - Estado de UI
+    /// Indica si se ha realizado al menos una búsqueda
+    public var hasSearched: Bool = false
     var isLoading = false
     var errorMessage: String?
-    
     private var isFetchingMore = false
-    
+
+    // MARK: - Filtros de búsqueda
     var filters = SearchFilters()
-    
-    var searchTitle: String {
-        get { filters.title }
-        set { filters.title = newValue }
-    }
-    var selectedGenres: [String] {
-        get { filters.genres }
-        set { filters.genres = newValue }
-    }
-    var selectedThemes: [String] {
-        get { filters.themes }
-        set { filters.themes = newValue }
-    }
-    var selectedDemographics: [String] {
-        get { filters.demographics }
-        set { filters.demographics = newValue }
-    }
+    var searchTitle: String { get { filters.title } set { filters.title = newValue } }
+    var selectedGenres: [String] { get { filters.genres } set { filters.genres = newValue } }
+    var selectedThemes: [String] { get { filters.themes } set { filters.themes = newValue } }
+    var selectedDemographics: [String] { get { filters.demographics } set { filters.demographics = newValue } }
+
+    // MARK: - Resultados e historial
+    var searchResults: [Manga] = []
+    var searchHistory: [SearchDB] = []
+
+    // MARK: - Paginación
     private var currentPage = 1
     private var totalItems = 0
-    
     var hasMoreResults: Bool { searchResults.count < totalItems }
-    
+
+    // MARK: - Flags de presentación
     var shouldShowHistory: Bool { !hasSearched && !isLoading }
     var shouldShowResults: Bool { hasSearched && !isLoading && !searchResults.isEmpty }
     var shouldShowNoResults: Bool { hasSearched && !isLoading && searchResults.isEmpty }
@@ -60,13 +50,18 @@ final class SearchViewModel {
         self.network = network
     }
     
-    // MARK: - Búsqueda
+    // MARK: - Gestión de búsqueda
+    /// Limpia por completo el estado de la búsqueda. Borra resultados, marca que aún no se ha buscado y reinicia todos los filtros.
     func clearSearch() {
         searchResults.removeAll()
         hasSearched = false
-        filters = SearchFilters() // limpia todo
+        filters = SearchFilters()
     }
     
+    /// Ejecuta una búsqueda solo si existen filtros válidos.
+    ///
+    /// Si los filtros están vacíos, resetea el estado; en caso contrario realiza la búsqueda.
+    /// - Parameter reset: Si es `true`, reinicia la paginación y los resultados antes de buscar.
     func searchIfNeeded(reset: Bool = true) async {
         if filters.isEmpty {
             clearSearch()
@@ -75,6 +70,14 @@ final class SearchViewModel {
         }
     }
     
+    // MARK: - Gestión de filtros
+    /// Actualiza los filtros seleccionados y lanza la búsqueda correspondiente.
+    ///
+    /// Solo modifica aquellos parámetros que no sean `nil`.
+    /// - Parameters:
+    ///   - genres: Lista de géneros seleccionados.
+    ///   - themes: Lista de temas seleccionados.
+    ///   - demographics: Lista de demografías seleccionadas.
     func updateFilters(genres: [String]? = nil, themes: [String]? = nil, demographics: [String]? = nil) async {
         if let genres { filters.genres = genres }
         if let themes { filters.themes = themes }
@@ -82,13 +85,24 @@ final class SearchViewModel {
         await searchIfNeeded(reset: true)
     }
     
+    // MARK: - Ejecución de búsqueda
+    /// Marca el inicio de una búsqueda y delega la carga de resultados.
+    ///
+    /// Guarda la búsqueda en el historial tras finalizar la petición.
+    /// - Parameter reset: Si es `true`, reinicia la paginación y limpia resultados previos.
     func performSearch(reset: Bool = true) async {
         hasSearched = true
         await fetchSearchResults(reset: reset)
         await saveSearch()
     }
     
-    // MARK: - Guardar búsqueda en SwiftData (evita duplicados y actualiza)
+    // MARK: - Historial de búsquedas (SwiftData)
+    /// Persiste la búsqueda actual en SwiftData evitando duplicados.
+    ///
+    /// Si existe una búsqueda equivalente (misma query normalizada y mismos filtros),
+    /// actualiza su fecha y campos para que aparezca como la más reciente; si no existe,
+    /// crea un nuevo registro. También limita el historial a 20 entradas.
+    /// - Important: Requiere `context` válido.
     func saveSearch() async {
         guard let context else {
             print("AHB: ❌ No hay contexto disponible para guardar la búsqueda")
@@ -148,7 +162,11 @@ final class SearchViewModel {
         }
     }
     
+    
     // MARK: - Cargar historial de búsquedas desde SwiftData
+    /// Carga el historial de búsquedas desde SwiftData ordenado por fecha descendente.
+    ///
+    /// - Important: Requiere `context` válido.
     func loadSearchHistory() async {
         guard let context else {
             print("AHB: ❌ No hay contexto disponible para cargar el historial")
@@ -161,24 +179,34 @@ final class SearchViewModel {
             searchHistory = results
             print("AHB: ✅ Historial recuperado con \(results.count) elementos: \(results.map { $0.query })")
         } catch {
-            print("❌ Error al cargar historial de búsquedas: \(error.localizedDescription)")
+            print("AHB: ❌ Error al cargar historial de búsquedas: \(error.localizedDescription)")
         }
     }
     
+    // MARK: - Eliminación de entradas del historial
     // Elimina una búsqueda concreta del historial
+    /// Elimina una entrada concreta del historial.
+    ///
+    /// Borra el objeto de SwiftData y actualiza el array en memoria.
+    /// - Parameter search: Entrada del historial a eliminar.
     func deleteSearchHistory(_ search: SearchDB) async {
         guard let context = context else { return }
         do {
             context.delete(search)
             try context.save()
             searchHistory.removeAll { $0.id == search.id }
-            print("🗑️ Búsqueda eliminada: \(search.query)")
+            print("AHB: 🗑️ Búsqueda eliminada: \(search.query)")
         } catch {
-            print("❌ Error eliminando búsqueda: \(error.localizedDescription)")
+            print("AHB: ❌ Error eliminando búsqueda: \(error.localizedDescription)")
         }
     }
     
+    // MARK: - Reutilizar una búsqueda del historial
     // Realiza una búsqueda a partir de un elemento del historial
+    /// Restaura filtros a partir de una entrada del historial y lanza la búsqueda.
+    ///
+    /// Copia `query`, `genres`, `themes` y `demographics` desde `search`.
+    /// - Parameter search: Entrada del historial usada como plantilla.
     func performSearch(from search: SearchDB) async {
         searchTitle = search.query
         selectedGenres = search.genres
@@ -189,6 +217,11 @@ final class SearchViewModel {
     }
     
     // MARK: - Paginación
+    /// Carga la siguiente página cuando el usuario llega al final del listado.
+    ///
+    /// Solo actúa si el `manga` recibido coincide con el último de `searchResults`,
+    /// aún quedan más elementos y no hay otra carga en curso.
+    /// - Parameter manga: Último elemento visible en la lista.
     func loadMoreIfNeeded(current manga: Manga) async {
         guard manga.id == searchResults.last?.id,
               hasMoreResults,
@@ -204,6 +237,11 @@ final class SearchViewModel {
     }
     
     // MARK: - Lógica central de búsqueda
+    /// Lógica central de consulta a la API y manejo de paginación.
+    ///
+    /// Realiza la petición al repositorio, actualiza `searchResults`, `totalItems`
+    /// y `currentPage`. Gestiona estados de carga y errores de red.
+    /// - Parameter reset: Si es `true`, inicia la carga desde la página 1 y limpia resultados.
     private func fetchSearchResults(reset: Bool = false) async {
         if reset {
             isLoading = true

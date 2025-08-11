@@ -10,7 +10,6 @@ import SwiftUI
 struct MangaSearchView: View {
     @State private var isExpanded: Bool = false
     @Environment(SearchViewModel.self) var searchViewModel
-    @Environment(\.modelContext) private var context
     
     var body: some View {
         NavigationStack {
@@ -19,7 +18,7 @@ struct MangaSearchView: View {
                 filtersSection
                 if searchViewModel.isLoading {
                     loadingSection
-                } else if !searchViewModel.hasSearched {
+                } else if searchViewModel.shouldShowHistory {
                     Text("Historial de búsquedas")
                         .font(.headline)
                         .padding(.horizontal)
@@ -27,13 +26,11 @@ struct MangaSearchView: View {
                     ScrollView {
                         historySection
                     }
-
-                } else if searchViewModel.searchResults.isEmpty {
+                } else if searchViewModel.shouldShowNoResults {
                     ScrollView {
                         noResultsSection
                     }
-
-                } else {
+                } else if searchViewModel.shouldShowResults {
                     Text("Resultados:")
                         .font(.headline)
                         .padding(.horizontal)
