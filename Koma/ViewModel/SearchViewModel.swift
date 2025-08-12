@@ -16,30 +16,30 @@ final class SearchViewModel {
     // MARK: - Dependencias
     let network: DataRepository
     var context: ModelContext?
-
+    
     // MARK: - Estado de UI
     /// Indica si se ha realizado al menos una búsqueda
-    public var hasSearched: Bool = false
-    var isLoading = false
-    var errorMessage: String?
+    private(set) var hasSearched: Bool = false
+    private(set) var isLoading = false
+    private(set) var errorMessage: String?
     private var isFetchingMore = false
-
+    
     // MARK: - Filtros de búsqueda
     var filters = SearchFilters()
     var searchTitle: String { get { filters.title } set { filters.title = newValue } }
     var selectedGenres: [String] { get { filters.genres } set { filters.genres = newValue } }
     var selectedThemes: [String] { get { filters.themes } set { filters.themes = newValue } }
     var selectedDemographics: [String] { get { filters.demographics } set { filters.demographics = newValue } }
-
+    
     // MARK: - Resultados e historial
-    var searchResults: [Manga] = []
-    var searchHistory: [SearchDB] = []
-
+    private(set) var searchResults: [Manga] = []
+    private(set) var searchHistory: [SearchDB] = []
+    
     // MARK: - Paginación
     private var currentPage = 1
     private var totalItems = 0
     var hasMoreResults: Bool { searchResults.count < totalItems }
-
+    
     // MARK: - Flags de presentación
     var shouldShowHistory: Bool { !hasSearched && !isLoading }
     var shouldShowResults: Bool { hasSearched && !isLoading && !searchResults.isEmpty }
@@ -49,6 +49,11 @@ final class SearchViewModel {
     init(network: DataRepository = NetworkRepository()) {
         self.network = network
     }
+    
+}
+
+// MARK: - Métodos públicos
+extension SearchViewModel {
     
     // MARK: - Gestión de búsqueda
     /// Limpia por completo el estado de la búsqueda. Borra resultados, marca que aún no se ha buscado y reinicia todos los filtros.
@@ -93,7 +98,6 @@ final class SearchViewModel {
     func performSearch(reset: Bool = true) async {
         hasSearched = true
         await fetchSearchResults(reset: reset)
-        await saveSearch()
     }
     
     // MARK: - Historial de búsquedas (SwiftData)
@@ -108,18 +112,18 @@ final class SearchViewModel {
             print("AHB: ❌ No hay contexto disponible para guardar la búsqueda")
             return
         }
-
+        
         let storedQuery  = filters.title.trimmingCharacters(in: .whitespacesAndNewlines)
         let compareQuery = filters.title.normalized()
         let targetGenres = Set(filters.genres)
         let targetThemes = Set(filters.themes)
         let targetDemo   = Set(filters.demographics)
-
+        
         print("AHB: ℹ️ Guardar búsqueda -> query: '\(storedQuery)', géneros: \(filters.genres), temas: \(filters.themes), demografía: \(filters.demographics)")
-
+        
         do {
             let all = try context.fetch(FetchDescriptor<SearchDB>())
-
+            
             if let existing = all.first(where: { item in
                 item.query.normalized() == compareQuery &&
                 Set(item.genres) == targetGenres &&
@@ -136,7 +140,7 @@ final class SearchViewModel {
                 await loadSearchHistory()
                 return
             }
-
+            
             let newSearch = SearchDB(
                 query: storedQuery,
                 genres: filters.genres,
@@ -147,7 +151,7 @@ final class SearchViewModel {
             try context.save()
             print("AHB: ✅ Búsqueda guardada: \(storedQuery)")
             await loadSearchHistory()
-
+            
             if searchHistory.count > 20 {
                 let toDelete = searchHistory
                     .sorted { $0.createdAt > $1.createdAt }
@@ -230,10 +234,19 @@ final class SearchViewModel {
             return
         }
         
-        isFetchingMore = true
-        defer { isFetchingMore = false }
-        
         await fetchSearchResults(reset: false)
+    }
+}
+
+// MARK: - Métodos privados
+
+extension SearchViewModel {
+    
+    /// Reinicia la paginación y limpia resultados
+    private func resetPagination() {
+        currentPage = 1
+        totalItems = 0
+        searchResults.removeAll()
     }
     
     // MARK: - Lógica central de búsqueda
@@ -245,8 +258,7 @@ final class SearchViewModel {
     private func fetchSearchResults(reset: Bool = false) async {
         if reset {
             isLoading = true
-            currentPage = 1
-            searchResults.removeAll()
+            resetPagination()
         } else {
             isFetchingMore = true
         }
@@ -254,14 +266,14 @@ final class SearchViewModel {
         defer { reset ? (isLoading = false) : (isFetchingMore = false) }
         
         do {
-            let response = try await network.searchMangas(
-                query: filters.toDTO(),
-                page: currentPage
-            )
+            let response = try await network.searchMangas(query: filters.toDTO(), page: currentPage)
             if reset { searchResults = response.items } else { searchResults += response.items }
             totalItems = response.metadata.total
             currentPage += 1
-        } catch let error as NetworkError {
+
+            if reset, !filters.isEmpty {
+                await saveSearch()
+            }        } catch let error as NetworkError {
             errorMessage = error.errorDescription
         } catch let error as MangaError {
             errorMessage = error.errorDescription
