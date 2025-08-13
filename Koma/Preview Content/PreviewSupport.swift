@@ -18,7 +18,7 @@ struct PreviewBootstrap<Content: View>: View {
 
     private let content: () -> Content
     private let mangaVM = MangaViewModel(network: NetworkTest())
-    private let searchVM = SearchViewModel()
+    private let searchVM = SearchViewModel(network: NetworkTest())
 
     init(@ViewBuilder content: @escaping () -> Content) {
         self.content = content

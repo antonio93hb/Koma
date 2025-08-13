@@ -19,9 +19,26 @@ struct NetworkTest: DataRepository {
         return bestMangas
     }
     func searchMangas(query: CustomSearchDTO, page: Int) async throws -> MangaResponse {
-        // Datos mock para previews (no filtra por query ni página)
-        try getJSON(fileName: "MangaTestPreview", type: MangaResponseDTO.self)
-            .toMangaResponse
+        let all = try getJSON(fileName: "MangaTestPreview", type: MangaResponseDTO.self).toMangaResponse
+        let per = all.metadata.per
+
+        // Filtro muy simple por título
+        let q = (query.searchTitle ?? "").trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        let filtered = q.isEmpty ? all.items : all.items.filter { m in
+            let haystack = [m.title, m.titleEnglish, m.titleJapanese]
+                .compactMap { $0?.lowercased() }
+                .joined(separator: " ")
+            return query.searchContains ? haystack.contains(q) : haystack.hasPrefix(q)
+        }
+
+        // Paginación básica
+        let start = max(0, (page - 1) * per)
+        let pageItems = Array(filtered.dropFirst(start).prefix(per))
+
+        return MangaResponse(
+            items: pageItems,
+            metadata: .init(per: per, page: page, total: filtered.count)
+        )
     }
     
     private func getJSON<JSON>(fileName: String, type: JSON.Type) throws -> JSON where JSON: Decodable {

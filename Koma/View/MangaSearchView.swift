@@ -227,6 +227,7 @@ struct MangaSearchView: View {
                             }
                     }
                 }
+                .padding(.horizontal)
             }
         }
     }

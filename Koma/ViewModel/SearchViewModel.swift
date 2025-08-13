@@ -49,7 +49,6 @@ final class SearchViewModel {
     init(network: DataRepository = NetworkRepository()) {
         self.network = network
     }
-    
 }
 
 // MARK: - Métodos públicos
