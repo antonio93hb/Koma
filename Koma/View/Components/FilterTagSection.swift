@@ -35,3 +35,11 @@ struct FilterTagSection: View {
         }
     }
 }
+
+#Preview {
+    FilterTagSection(
+        title: "Género",
+        items: .constant(["Drama", "Action", "Fantasy"]),
+        styleProvider: { GenreUIHelper.style(for: $0) }
+    )
+}

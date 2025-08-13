@@ -245,3 +245,9 @@ struct FlowLayout<Content: View>: View {
         }
     }
 }
+
+#Preview {
+    let test = Manga.test
+    MoreInfoSheetView(title: test.title, authors: test.authors, genres: test.genres, themes: test.themes, demographics: test.demographics, background: test.background, titleEnglish: test.titleEnglish, titleJapanese: test.titleJapanese, url: test.url, imageURL: test.imageURL
+    )
+}

@@ -39,3 +39,13 @@ struct FilterMenu: View {
         }
     }
 }
+
+#Preview {
+    FilterMenu(
+        title: "Género",
+        items: ["Action","Adventure","Drama","Fantasy","Horror"],
+        selectedItems: .constant(["Drama"]),
+        styleProvider: { GenreUIHelper.style(for: $0) }
+    )
+}
+

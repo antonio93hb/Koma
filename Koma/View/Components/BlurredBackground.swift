@@ -27,3 +27,7 @@ struct BlurredBackground: View {
         }
     }
 }
+
+#Preview {
+    BlurredBackground(imageURL: Manga.test.imageURL)
+}

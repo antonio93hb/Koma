@@ -37,3 +37,19 @@ struct TagLabel: View {
         }
     }
 }
+
+#Preview {
+    VStack(spacing: 12) {
+        TagLabel(
+            text: "Drama",
+            style: TagStyle(color: .blue, icon: "film")
+        )
+
+        TagLabel(
+            text: "Horror",
+            style: TagStyle(color: .red, icon: "drop.fill"),
+            onRemove: { print("Etiqueta eliminada") }
+        )
+    }
+    .padding()
+}

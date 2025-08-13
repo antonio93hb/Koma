@@ -22,6 +22,6 @@ struct ContentView: View {
 }
 
 #Preview {
-    ContentView()
-        .environment(RootManager())
+    PreviewBootstrap { ContentView() }
+        .previewModelContainer()
 }

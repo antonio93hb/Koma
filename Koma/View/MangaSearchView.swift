@@ -261,3 +261,7 @@ struct MangaSearchView: View {
         .padding()
     }
 }
+#Preview {
+    PreviewBootstrap { MangaSearchView() }
+        .previewModelContainer() 
+}

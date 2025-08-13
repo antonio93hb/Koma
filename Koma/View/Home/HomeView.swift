@@ -109,17 +109,6 @@ struct HomeView: View {
 }
 
 #Preview {
-    PreviewWrapper()
-}
-
-private struct PreviewWrapper: View {
-    var body: some View {
-        let testViewModel = MangaViewModel(network: NetworkTest())
-        HomeView()
-            .environment(testViewModel)
-            .task {
-                await testViewModel.loadIfNeeded()
-            }
-            .tint(.primary)
-    }
+    PreviewBootstrap { HomeView() }
+        .previewModelContainer()
 }

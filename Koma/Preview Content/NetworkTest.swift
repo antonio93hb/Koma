@@ -18,11 +18,10 @@ struct NetworkTest: DataRepository {
             .toMangaResponse
         return bestMangas
     }
-    #warning("AHB CAMBIAR")
     func searchMangas(query: CustomSearchDTO, page: Int) async throws -> MangaResponse {
-        let allMangas = try getJSON(fileName: "MangaTestPreview", type: MangaResponseDTO.self)
+        // Datos mock para previews (no filtra por query ni página)
+        try getJSON(fileName: "MangaTestPreview", type: MangaResponseDTO.self)
             .toMangaResponse
-        return allMangas
     }
     
     private func getJSON<JSON>(fileName: String, type: JSON.Type) throws -> JSON where JSON: Decodable {

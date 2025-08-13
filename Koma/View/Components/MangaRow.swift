@@ -80,7 +80,10 @@ struct MangaRow: View {
 }
 
 #Preview {
-    List {
-        MangaRow(manga: .test)
+    PreviewBootstrap {
+        List {
+            MangaRow(manga: .test, showSavedIcon: true)
+        }
     }
+    .previewModelContainer()
 }

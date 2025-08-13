@@ -541,25 +541,6 @@ extension MangaDetailView {
     }
 }
 
-
-
-// MARK: - Preview
-#Preview {
-    let mockViewModel = MangaViewModel()
-    return MangaDetailPreviewWrapper(manga: .test)
-        .environment(mockViewModel)
-}
-
-private struct MangaDetailPreviewWrapper: View {
-    let manga: Manga
-
-    var body: some View {
-        MangaDetailView(manga: manga)
-            .modelContainer(for: MangaDB.self, inMemory: true)
-    }
-}
-
-
 // MARK: - OwnedVolumesMenu
 private struct OwnedVolumesMenu: View {
     @Binding var ownedVolumes: Int?
@@ -591,5 +572,21 @@ private struct OwnedVolumesMenu: View {
                 .overlay(Capsule().stroke(Color.gray.opacity(0.3), lineWidth: 1))
                 .shadow(radius: 1)
         }
+    }
+}
+
+// MARK: - Preview
+#Preview {
+    let mockViewModel = MangaViewModel()
+    return MangaDetailPreviewWrapper(manga: .test)
+        .environment(mockViewModel)
+}
+
+private struct MangaDetailPreviewWrapper: View {
+    let manga: Manga
+
+    var body: some View {
+        MangaDetailView(manga: manga)
+            .modelContainer(for: MangaDB.self, inMemory: true)
     }
 }

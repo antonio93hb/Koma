@@ -55,5 +55,4 @@ struct SearchHistoryRow: View {
         onSelect: {}
     )
     .padding()
-    .previewLayout(.sizeThatFits)
 }
