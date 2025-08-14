@@ -4,56 +4,69 @@ import SwiftData
 struct HomeView: View {
     @Environment(MangaViewModel.self) var viewModel
     @State private var isGridMode = false
+    /// URL (String) de la portada centrada en el carrusel para pintar el fondo borroso
+    @State private var focusedCoverURL: String?
+    @State private var carouselFrame: CGRect = .zero
+    private let headerHeight: CGFloat = 220
 
     var body: some View {
         NavigationStack {
-            if viewModel.isLoading && viewModel.mangas.isEmpty {
-                ProgressView("Loading mangas...")
-            } else {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 16) {
-                        CarruselSectionView()
+            ZStack {
+                // Fondo base para toda la vista
+                Color(.systemBackground).ignoresSafeArea()
+                
+                // Contenido principal
+                if viewModel.isLoading && viewModel.mangas.isEmpty {
+                    ProgressView("Loading mangas...")
+                } else {
+                    ScrollView {
+                        ZStack(alignment: .top) {
+                            // Fondo borroso anclado al carrusel: se mueve junto al contenido
+                            SoftBlurBackdrop(imageURL: focusedCoverURL)
+                                .opacity(0.2) // 🔹 Más transparencia para que se vea menos el fondo
+                                .frame(height: max(1, (carouselFrame.height == .zero ? headerHeight : carouselFrame.height) + 150))
+                                .offset(y: (carouselFrame.minY == .infinity ? -130 : carouselFrame.minY - 130))
+                                .ignoresSafeArea(edges: [.top, .horizontal])
+                                .allowsHitTesting(false)
+                                .zIndex(0)
 
-                        HStack {
-                            Text("Popular")
-                            Spacer()
-                            toggleViewButton
-                        }
-                        .padding(.horizontal)
+                            // Contenido
+                            VStack(alignment: .leading, spacing: 16) {
+                                CarruselSectionView()
+                                    .padding(.top, 4)
+                                    .zIndex(1)
 
-                        if isGridMode {
-                            gridSection
-                        } else {
-                            listSection
-                        }
+                                HStack {
+                                    Text("Popular")
+                                    Spacer()
+                                    toggleViewButton
+                                }
+                                .padding(.horizontal)
 
-                        if viewModel.isLoading {
-                            ProgressView()
-                                .frame(maxWidth: .infinity)
+                                if isGridMode {
+                                    gridSection
+                                } else {
+                                    listSection
+                                }
+
+                                if viewModel.isLoading {
+                                    ProgressView()
+                                        .frame(maxWidth: .infinity)
+                                }
+                            }
+                            .zIndex(1)
                         }
                     }
+                    .navigationTitle("Descubrir")
                 }
-                .navigationTitle("Descubrir")
             }
         }
-    }
-    
-    @ViewBuilder
-    private func mainContent(body: some View) -> some View {
-        CarruselSectionView()
-
-        HStack {
-            Text("Popular")
-            Spacer()
-            toggleViewButton
+        // Escuchamos el valor publicado por el carrusel (portada centrada)
+        .onPreferenceChange(CenteredCoverPreferenceKey.self) { value in
+            focusedCoverURL = value
         }
-        .padding(.horizontal)
-
-        body
-
-        if viewModel.isLoading {
-            ProgressView()
-                .frame(maxWidth: .infinity)
+        .onPreferenceChange(CarouselFramePreferenceKey.self) { rect in
+            carouselFrame = rect
         }
     }
 
@@ -101,7 +114,8 @@ struct HomeView: View {
                     Task {
                         await viewModel.loadMoreIfNeeded(current: manga)
                     }
-                }            }
+                }
+            }
         }
         .padding(.horizontal)
         .padding(.vertical)
@@ -111,4 +125,22 @@ struct HomeView: View {
 #Preview {
     PreviewBootstrap { HomeView() }
         .previewModelContainer()
+}
+
+// MARK: - PreferenceKey para portada centrada del carrusel
+struct CenteredCoverPreferenceKey: PreferenceKey {
+    static var defaultValue: String? = nil
+    static func reduce(value: inout String?, nextValue: () -> String?) {
+        if let new = nextValue() {
+            value = new
+        }
+    }
+}
+
+// MARK: - PreferenceKey para el frame del carrusel
+struct CarouselFramePreferenceKey: PreferenceKey {
+    static var defaultValue: CGRect = .zero
+    static func reduce(value: inout CGRect, nextValue: () -> CGRect) {
+        value = nextValue()
+    }
 }
