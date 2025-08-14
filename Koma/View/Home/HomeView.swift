@@ -22,14 +22,13 @@ struct HomeView: View {
                     ScrollView {
                         ZStack(alignment: .top) {
                             // Fondo borroso anclado al carrusel: se mueve junto al contenido
-                            SoftBlurBackdrop(imageURL: focusedCoverURL)
-                                .opacity(0.2) // 🔹 Más transparencia para que se vea menos el fondo
-                                .frame(height: max(1, (carouselFrame.height == .zero ? headerHeight : carouselFrame.height) + 150))
-                                .offset(y: (carouselFrame.minY == .infinity ? -130 : carouselFrame.minY - 130))
-                                .ignoresSafeArea(edges: [.top, .horizontal])
-                                .allowsHitTesting(false)
-                                .zIndex(0)
-
+                            CarouselBlurOverlay(
+                                imageURL: focusedCoverURL,
+                                anchorFrame: carouselFrame,
+                                fallbackHeight: headerHeight,
+                                verticalPadding: 120,
+                                opacity: 0.18
+                            )
                             // Contenido
                             VStack(alignment: .leading, spacing: 16) {
                                 CarruselSectionView()
@@ -125,22 +124,4 @@ struct HomeView: View {
 #Preview {
     PreviewBootstrap { HomeView() }
         .previewModelContainer()
-}
-
-// MARK: - PreferenceKey para portada centrada del carrusel
-struct CenteredCoverPreferenceKey: PreferenceKey {
-    static var defaultValue: String? = nil
-    static func reduce(value: inout String?, nextValue: () -> String?) {
-        if let new = nextValue() {
-            value = new
-        }
-    }
-}
-
-// MARK: - PreferenceKey para el frame del carrusel
-struct CarouselFramePreferenceKey: PreferenceKey {
-    static var defaultValue: CGRect = .zero
-    static func reduce(value: inout CGRect, nextValue: () -> CGRect) {
-        value = nextValue()
-    }
 }

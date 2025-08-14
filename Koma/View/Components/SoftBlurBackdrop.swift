@@ -48,3 +48,11 @@ struct SoftBlurBackdrop: View {
         .accessibilityHidden(true)
     }
 }
+
+#Preview {
+    ZStack {
+        Color.black.ignoresSafeArea()
+        SoftBlurBackdrop(imageURL: Manga.test.imageURL)
+            .frame(height: 300)
+    }
+}
