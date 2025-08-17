@@ -11,6 +11,7 @@ struct MangaSearchView: View {
     @State private var isExpanded: Bool = false
     @Environment(SearchViewModel.self) var searchViewModel
     @Environment(MangaViewModel.self) var mangaViewModel
+    @FocusState private var isSearchFocused: Bool
     
     var body: some View {
         NavigationStack {
@@ -63,13 +64,19 @@ struct MangaSearchView: View {
                                 }
                             }
                         }
+                        .scrollDismissesKeyboard(.interactively)
                     }
                 }
                 .zIndex(1)
             }
+            .contentShape(Rectangle())
+            .onTapGesture {
+                isSearchFocused = false
+            }
             .navigationTitle("Buscar")
-            .navigationBarTitleDisplayMode(.automatic)
-            .toolbarBackground(.hidden, for: .navigationBar)
+            .navigationBarTitleDisplayMode(isSearchFocused ? .inline : .automatic)
+            .toolbarBackground(isSearchFocused ? .visible : .hidden, for: .navigationBar)
+            .animation(.easeInOut(duration: 0.2), value: isSearchFocused)
             .onAppear {
                 searchViewModel.computeFallbackBackground(
                     allMangas: mangaViewModel.mangas,
@@ -88,19 +95,23 @@ struct MangaSearchView: View {
                 set: { searchViewModel.searchTitle = $0 }
             ))
             .textFieldStyle(RoundedBorderTextFieldStyle())
+            .focused($isSearchFocused)
             .onSubmit {
                 Task { await searchViewModel.searchIfNeeded() }
+                isSearchFocused = false
             }
             Button(action: {
                 Task { await searchViewModel.searchIfNeeded() }
+                isSearchFocused = false
             }) {
                 Image(systemName: "magnifyingglass")
                     .imageScale(.large)
                     .padding(.leading, 8)
             }
-            if !searchViewModel.searchTitle.isEmpty || searchViewModel.hasSearched {
+            if isSearchFocused || !searchViewModel.searchTitle.isEmpty || searchViewModel.hasSearched {
                 Button(action: {
                     searchViewModel.clearSearch()
+                    isSearchFocused = false
                 }) {
                     Image(systemName: "xmark.circle.fill")
                         .imageScale(.large)
