@@ -20,21 +20,39 @@ struct CarouselBlurOverlay: View {
     let opacity: Double
 
     var body: some View {
-        // Altura efectiva: si aún no hay frame, usamos el fallback.
         let height = max(1, (anchorFrame.height == .zero ? fallbackHeight : anchorFrame.height) + verticalPadding * 2)
 
-        // Offset vertical: anclamos el blur al TOP del carrusel y lo desplazamos
-        // hacia arriba `verticalPadding` para que “entre” detrás de elementos cercanos.
         let offsetY = (anchorFrame.minY.isInfinite ? -verticalPadding : anchorFrame.minY - verticalPadding)
 
-        SoftBlurBackdrop(imageURL: imageURL)
-            .opacity(opacity)
-            .frame(height: height)
-            .offset(y: offsetY)
-            .ignoresSafeArea(edges: [.top, .horizontal])
-            .allowsHitTesting(false)
-            .zIndex(0)
-    }
+        BlurredBackground(
+            imageURL: imageURL,
+            blur: 24,
+            opacity: 1.0,
+            height: height,
+            fadeDistance: height * 0.20,
+            showTopShadow: false
+        )
+        .overlay(
+            Rectangle().fill(.ultraThinMaterial).opacity(0.55)
+        )
+        .saturation(1.1)
+        .mask(
+            LinearGradient(
+                stops: [
+                    .init(color: .clear, location: 0.00),
+                    .init(color: .black, location: 0.18),
+                    .init(color: .black, location: 0.82),
+                    .init(color: .clear, location: 1.00),
+                ],
+                startPoint: .top, endPoint: .bottom
+            )
+        )
+        .opacity(opacity)
+        .frame(height: height)
+        .offset(y: offsetY)
+        .ignoresSafeArea(edges: [.top, .horizontal])
+        .allowsHitTesting(false)
+        .zIndex(0)    }
 }
 
 #Preview {

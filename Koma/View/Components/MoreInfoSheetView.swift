@@ -38,8 +38,7 @@ struct MoreInfoSheetView: View {
                         urlSection()
                     }
                     .frame(maxWidth: UIScreen.main.bounds.width * 0.9, alignment: .leading)
-                    .padding(.horizontal)
-                    .padding(.vertical, 16)
+                    .padding()
                 }
             }
             .navigationTitle("Información")
