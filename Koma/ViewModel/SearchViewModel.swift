@@ -35,6 +35,14 @@ final class SearchViewModel {
     private(set) var searchResults: [Manga] = []
     private(set) var searchHistory: [SearchDB] = []
     
+    // MARK: - Fondo borroso (header)
+    /// URL de fondo por defecto (primera portada guardada o aleatoria)
+    private(set) var fallbackBGURL: String?
+    /// URL de fondo activa (primera portada de los resultados)
+    private(set) var activeBGURL: String?
+    /// URL efectiva que debe usar la vista (activa si existe, si no fallback)
+    var currentBGURL: String? { activeBGURL ?? fallbackBGURL }
+    
     // MARK: - Paginación
     private var currentPage = 1
     private var totalItems = 0
@@ -60,6 +68,7 @@ extension SearchViewModel {
         searchResults.removeAll()
         hasSearched = false
         filters = SearchFilters()
+        activeBGURL = nil
     }
     
     /// Ejecuta una búsqueda solo si existen filtros válidos.
@@ -235,6 +244,24 @@ extension SearchViewModel {
         
         await fetchSearchResults(reset: false)
     }
+    
+    
+    // MARK: - Fondo dinámico de búsqueda
+    /// Calcula el fondo por defecto a mostrar en la vista de búsqueda.
+    /// Usa la primera portada de mangas guardados o un manga aleatorio como fallback.
+    func computeFallbackBackground(allMangas: [Manga], savedMangas: [Manga]) {
+        fallbackBGURL = savedMangas.first?.imageURL
+            ?? allMangas.randomElement()?.imageURL
+    }
+
+    /// Actualiza el fondo tras una búsqueda en base a los resultados obtenidos.
+    /// Si no hay resultados, mantiene el fondo por defecto.
+    func updateBackgroundAfterSearch() {
+        let first = searchResults.first?.imageURL
+        withAnimation(.easeInOut(duration: 0.25)) {
+            activeBGURL = first
+        }
+    }
 }
 
 // MARK: - Métodos privados
@@ -263,16 +290,24 @@ extension SearchViewModel {
         }
         errorMessage = nil
         defer { reset ? (isLoading = false) : (isFetchingMore = false) }
-        
+
         do {
             let response = try await network.searchMangas(query: filters.toDTO(), page: currentPage)
-            if reset { searchResults = response.items } else { searchResults += response.items }
+
+            if reset {
+                searchResults = response.items
+                updateBackgroundAfterSearch()
+            } else {
+                searchResults += response.items
+            }
+
             totalItems = response.metadata.total
             currentPage += 1
 
             if reset, !filters.isEmpty {
                 await saveSearch()
-            }        } catch let error as NetworkError {
+            }
+        } catch let error as NetworkError {
             errorMessage = error.errorDescription
         } catch let error as MangaError {
             errorMessage = error.errorDescription

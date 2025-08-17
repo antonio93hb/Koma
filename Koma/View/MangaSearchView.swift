@@ -10,41 +10,72 @@ import SwiftUI
 struct MangaSearchView: View {
     @State private var isExpanded: Bool = false
     @Environment(SearchViewModel.self) var searchViewModel
+    @Environment(MangaViewModel.self) var mangaViewModel
     
     var body: some View {
         NavigationStack {
-            VStack {
-                searchBar
-                filtersSection
-                if searchViewModel.isLoading {
-                    loadingSection
-                } else {
-                    // Encabezado según el estado
-                    if searchViewModel.shouldShowHistory {
-                        Text("Historial de búsquedas")
-                            .font(.headline)
-                            .padding(.horizontal)
-                    } else if searchViewModel.shouldShowResults {
-                        Text("Resultados:")
-                            .font(.headline)
-                            .padding(.horizontal)
-                    }
+            ZStack(alignment: .top) {
+                // Capa base
+                Color(.systemBackground)
+                    .ignoresSafeArea()
 
-                    ScrollView {
-                        Group {
-                            if searchViewModel.shouldShowHistory {
-                                historySection
-                            } else if searchViewModel.shouldShowNoResults {
-                                noResultsSection
-                            } else if searchViewModel.shouldShowResults {
-                                resultsSection
+                // Fondo borroso como en Collection
+                if let bgURL = searchViewModel.currentBGURL {
+                    BlurredBackground(
+                        imageURL: bgURL,
+                        blur: 24,
+                        opacity: 0.18,
+                        height: 500 + 16,
+                        fadeDistance: 120 + 16,
+                        showTopShadow: false
+                    )
+                    .allowsHitTesting(false)
+                    .ignoresSafeArea(edges: .top)
+                    .zIndex(0)
+                }
+
+                // --- CONTENIDO ---
+                VStack {
+                    searchBar
+                    filtersSection
+                    if searchViewModel.isLoading {
+                        loadingSection
+                    } else {
+                        // Encabezado según el estado
+                        if searchViewModel.shouldShowHistory {
+                            Text("Historial de búsquedas")
+                                .font(.headline)
+                                .padding(.horizontal)
+                        } else if searchViewModel.shouldShowResults {
+                            Text("Resultados:")
+                                .font(.headline)
+                                .padding(.horizontal)
+                        }
+
+                        ScrollView {
+                            Group {
+                                if searchViewModel.shouldShowHistory {
+                                    historySection
+                                } else if searchViewModel.shouldShowNoResults {
+                                    noResultsSection
+                                } else if searchViewModel.shouldShowResults {
+                                    resultsSection
+                                }
                             }
                         }
                     }
                 }
-                
+                .zIndex(1)
             }
             .navigationTitle("Buscar")
+            .navigationBarTitleDisplayMode(.automatic)
+            .toolbarBackground(.hidden, for: .navigationBar)
+            .onAppear {
+                searchViewModel.computeFallbackBackground(
+                    allMangas: mangaViewModel.mangas,
+                    savedMangas: mangaViewModel.savedMangas
+                )
+            }
         }
     }
     
@@ -264,5 +295,5 @@ struct MangaSearchView: View {
 }
 #Preview {
     PreviewBootstrap { MangaSearchView() }
-        .previewModelContainer() 
+        .previewModelContainer()
 }
