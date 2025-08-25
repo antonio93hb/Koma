@@ -23,24 +23,22 @@ struct MoreInfoSheetView: View {
     
     var body: some View {
         NavigationView {
-            ZStack {
-                if let imageURL = imageURL {
-                    BlurredBackground(imageURL: imageURL)
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    headerSection()
+                    authorsSection()
+                    demographicsSection()
+                    genresSection()
+                    themesSection()
+                    additionalInfoSection()
+                    urlSection()
                 }
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 16) {
-                        headerSection()
-                        authorsSection()
-                        demographicsSection()
-                        genresSection()
-                        themesSection()
-                        additionalInfoSection()
-                        urlSection()
-                    }
-                    .frame(maxWidth: UIScreen.main.bounds.width * 0.9, alignment: .leading)
-                    .padding()
-                }
+                .frame(maxWidth: UIScreen.main.bounds.width * 0.9, alignment: .leading)
+                .padding()
             }
+            .background(
+                BlurredBackground(imageURL: imageURL)
+            )
             .navigationTitle("Información")
             .navigationBarTitleDisplayMode(.inline)
         }
@@ -79,8 +77,7 @@ struct MoreInfoSheetView: View {
             } placeholder: {
                 Color.gray.opacity(0.3)
             }
-            .frame(width: UIScreen.main.bounds.width * 0.28,
-                   height: UIScreen.main.bounds.width * 0.4)
+            .frame(width: 120, height: 170)
             .clipShape(RoundedRectangle(cornerRadius: 8))
             .overlay(
                 RoundedRectangle(cornerRadius: 8)
