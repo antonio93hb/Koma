@@ -14,72 +14,75 @@ struct MangaCollectionView: View {
             // Imagen para el fondo borroso: primer guardado o aleatorio si no hay
             let bgURL = viewModel.savedMangas.first?.imageURL ?? viewModel.mangas.randomElement()?.imageURL
 
-            ZStack(alignment: .top) {
-                // Capa base
-                Color(.systemBackground)
-                    .ignoresSafeArea()
+            GeometryReader { geo in
+                ZStack(alignment: .top) {
+                    // Capa base
+                    Color(.systemBackground)
+                        .ignoresSafeArea()
 
-                if let bgURL {
-                    BlurredBackground(
-                        imageURL: bgURL,
-                        blur: 24,
-                        opacity: 0.18,
-                        height: headerHeight + 16,
-                        fadeDistance: fadeDistance + 16,
-                        showTopShadow: false
-                    )
-                    .allowsHitTesting(false)
-                    .ignoresSafeArea(edges: .top)
-                    .zIndex(0)
-                }
-                // --- CONTENIDO ---
-                List {
+                    if let bgURL {
+                        BlurredBackground(
+                            imageURL: bgURL,
+                            blur: 24,
+                            opacity: 0.18,
+                            height: geo.size.height * 0.45,
+                            fadeDistance: fadeDistance + 16,
+                            showTopShadow: false
+                        )
+                        .allowsHitTesting(false)
+                        .ignoresSafeArea(edges: .top)
+                        .zIndex(0)
+                    }
 
-                    if viewModel.savedMangas.isEmpty {
-                        // Estado vacío centrado
-                        VStack(spacing: 16) {
-                            Image(systemName: "bookmark.slash")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 80, height: 80)
-                                .foregroundStyle(.gray.opacity(0.5))
-                            Text("No saved mangas yet.")
-                                .font(.title3).fontWeight(.semibold)
-                                .foregroundStyle(.secondary)
-                            Text("Save your favorite mangas by opening their details.")
-                                .font(.subheadline)
-                                .foregroundStyle(.gray.opacity(0.6))
-                                .padding(.horizontal, 30)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 24)
-                        .listRowBackground(Color.clear)
-                    } else {
-                        Section {
-                            ForEach(viewModel.savedMangas) { manga in
-                                MangaRow(
-                                    manga: manga,
-                                    ownedVolumeText: "Tomos: \(manga.ownedVolumes ?? 0) / \(manga.volumes ?? 0)"
-                                )
-                                .contentShape(Rectangle())
-                                .onTapGesture { selectedManga = manga }
+                    // --- CONTENIDO ---
+                    List {
+
+                        if viewModel.savedMangas.isEmpty {
+                            // Estado vacío centrado
+                            VStack(spacing: 16) {
+                                Image(systemName: "bookmark.slash")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 80, height: 80)
+                                    .foregroundStyle(.gray.opacity(0.5))
+                                Text("No saved mangas yet.")
+                                    .font(.title3).fontWeight(.semibold)
+                                    .foregroundStyle(.secondary)
+                                Text("Save your favorite mangas by opening their details.")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.gray.opacity(0.6))
+                                    .padding(.horizontal, 30)
                             }
-                            .onDelete { indexSet in
-                                Task {
-                                    for idx in indexSet {
-                                        let m = viewModel.savedMangas[idx]
-                                        try? await viewModel.unSaveManga(m)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 24)
+                            .listRowBackground(Color.clear)
+                        } else {
+                            Section {
+                                ForEach(viewModel.savedMangas) { manga in
+                                    MangaRow(
+                                        manga: manga,
+                                        ownedVolumeText: "Tomos: \(manga.ownedVolumes ?? 0) / \(manga.volumes ?? 0)"
+                                    )
+                                    .contentShape(Rectangle())
+                                    .onTapGesture { selectedManga = manga }
+                                }
+                                .onDelete { indexSet in
+                                    Task {
+                                        for idx in indexSet {
+                                            let m = viewModel.savedMangas[idx]
+                                            try? await viewModel.unSaveManga(m)
+                                        }
+                                        await viewModel.getSavedMangas()
                                     }
-                                    await viewModel.getSavedMangas()
                                 }
                             }
+                            .listRowBackground(Color.clear)
                         }
-                        .listRowBackground(Color.clear)
                     }
+                    .scrollContentBackground(.hidden)
+                    .listRowBackground(Color.clear)
+                    .zIndex(1)
                 }
-                .scrollContentBackground(.hidden)
-                .listRowBackground(Color.clear)
-                .zIndex(1)
             }
             .navigationTitle("Guardados")
             .navigationBarTitleDisplayMode(.automatic)
