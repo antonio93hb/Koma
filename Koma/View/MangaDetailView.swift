@@ -23,7 +23,12 @@ struct MangaDetailView: View {
     var body: some View {
         ZStack {
             // 📸 Fondo desenfocado
-            BlurredBackground(imageURL: manga.imageURL)
+            Color.clear
+                .background {
+                    BlurredBackground(imageURL: manga.imageURL)
+                }
+                .ignoresSafeArea()
+                .zIndex(-1)
 
             ScrollView {
                 VStack(spacing: 24) {
