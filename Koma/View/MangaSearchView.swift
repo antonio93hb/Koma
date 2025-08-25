@@ -15,59 +15,60 @@ struct MangaSearchView: View {
     
     var body: some View {
         NavigationStack {
-            ZStack(alignment: .top) {
-                // Capa base
-                Color(.systemBackground)
-                    .ignoresSafeArea()
+            GeometryReader { geo in
+                ZStack(alignment: .top) {
+                    // Capa base
+                    Color(.systemBackground)
+                        .ignoresSafeArea()
 
-                // Fondo borroso como en Collection
-                if let bgURL = searchViewModel.currentBGURL {
-                    BlurredBackground(
-                        imageURL: bgURL,
-                        blur: 24,
-                        opacity: 0.18,
-                        height: 500 + 16,
-                        fadeDistance: 120 + 16,
-                        showTopShadow: false
-                    )
-                    .allowsHitTesting(false)
-                    .ignoresSafeArea(edges: .top)
-                    .zIndex(0)
-                }
+                    // Fondo borroso adaptado a altura de pantalla
+                    if let bgURL = searchViewModel.currentBGURL {
+                        BlurredBackground(
+                            imageURL: bgURL,
+                            blur: 24,
+                            opacity: 0.18,
+                            height: geo.size.height * 0.45,
+                            fadeDistance: 120 + 16,
+                            showTopShadow: false
+                        )
+                        .allowsHitTesting(false)
+                        .ignoresSafeArea(edges: .top)
+                        .zIndex(0)
+                    }
 
-                // --- CONTENIDO ---
-                VStack {
-                    searchBar
-                    filtersSection
-                    if searchViewModel.isLoading {
-                        loadingSection
-                    } else {
-                        // Encabezado según el estado
-                        if searchViewModel.shouldShowHistory {
-                            Text("Historial de búsquedas")
-                                .font(.headline)
-                                .padding(.horizontal)
-                        } else if searchViewModel.shouldShowResults {
-                            Text("Resultados:")
-                                .font(.headline)
-                                .padding(.horizontal)
-                        }
+                    // --- CONTENIDO ---
+                    VStack {
+                        searchBar
+                        filtersSection
+                        if searchViewModel.isLoading {
+                            loadingSection
+                        } else {
+                            if searchViewModel.shouldShowHistory {
+                                Text("Historial de búsquedas")
+                                    .font(.headline)
+                                    .padding(.horizontal)
+                            } else if searchViewModel.shouldShowResults {
+                                Text("Resultados:")
+                                    .font(.headline)
+                                    .padding(.horizontal)
+                            }
 
-                        ScrollView {
-                            Group {
-                                if searchViewModel.shouldShowHistory {
-                                    historySection
-                                } else if searchViewModel.shouldShowNoResults {
-                                    noResultsSection
-                                } else if searchViewModel.shouldShowResults {
-                                    resultsSection
+                            ScrollView {
+                                Group {
+                                    if searchViewModel.shouldShowHistory {
+                                        historySection
+                                    } else if searchViewModel.shouldShowNoResults {
+                                        noResultsSection
+                                    } else if searchViewModel.shouldShowResults {
+                                        resultsSection
+                                    }
                                 }
                             }
+                            .scrollDismissesKeyboard(.interactively)
                         }
-                        .scrollDismissesKeyboard(.interactively)
                     }
+                    .zIndex(1)
                 }
-                .zIndex(1)
             }
             .contentShape(Rectangle())
             .onTapGesture {
