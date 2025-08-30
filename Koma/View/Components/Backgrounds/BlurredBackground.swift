@@ -76,7 +76,6 @@ private struct BlurredImage: View {
         if let heightValue = height {
             blurredImageBase
                 .frame(height: heightValue)
-                // Recorte con desvanecido hacia abajo (igual que en Home)
                 .mask(
                     LinearGradient(
                         gradient: Gradient(stops: [
@@ -88,7 +87,6 @@ private struct BlurredImage: View {
                         startPoint: .top, endPoint: .bottom
                     )
                 )
-                // Sombra suave arriba (opcional)
                 .overlay(alignment: .top) {
                     if showTopShadow {
                         LinearGradient(
@@ -105,7 +103,6 @@ private struct BlurredImage: View {
                 .allowsHitTesting(false)
                 .clipped()
         } else {
-            // Versión “full screen”
             blurredImageBase
                 .allowsHitTesting(false)
         }

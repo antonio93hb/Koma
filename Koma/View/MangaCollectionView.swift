@@ -5,7 +5,6 @@ struct MangaCollectionView: View {
     @Environment(MangaViewModel.self) var viewModel
     @State private var selectedManga: Manga? = nil
     
-    // Altura y desvanecido del encabezado — iguales que en Home
     private let headerHeight: CGFloat = 500
     private let fadeDistance: CGFloat = 120
     
@@ -16,7 +15,6 @@ struct MangaCollectionView: View {
 
             GeometryReader { geo in
                 ZStack(alignment: .top) {
-                    // Capa base
                     Color(.systemBackground)
                         .ignoresSafeArea()
 
@@ -34,7 +32,6 @@ struct MangaCollectionView: View {
                         .zIndex(0)
                     }
 
-                    // --- CONTENIDO ---
                     List {
 
                         if viewModel.savedMangas.isEmpty {

@@ -21,10 +21,9 @@ struct MangaCardCarrusel: View {
                     .opacity(0.1)
                     .offset(y: 10)
                     .overlay(
-                            // Capa sutil para suavizar los bordes
                             LinearGradient(
                                 gradient: Gradient(colors: [
-                                    Color(.systemBackground), // más integrado con el fondo
+                                    Color(.systemBackground),
                                     Color(.systemBackground).opacity(0.0),
                                     Color(.systemBackground)
                                 ]),
@@ -40,13 +39,12 @@ struct MangaCardCarrusel: View {
             
             ZStack(alignment: .bottomLeading) {
                 
-                // Imagen de fondo con blur
                 AsyncImage(url: URL(string: manga.imageURL)) { image in
                     image
                         .resizable()
                         .scaledToFill()
                         .blur(radius: 1)
-                        .overlay(Color.black.opacity(0.3)) // Degradado oscuro
+                        .overlay(Color.black.opacity(0.3))
                 } placeholder: {
                     Color.gray
                 }

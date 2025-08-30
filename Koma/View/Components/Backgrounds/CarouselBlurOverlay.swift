@@ -57,7 +57,6 @@ struct CarouselBlurOverlay: View {
 
 #Preview {
     ZStack {
-        // Fondo simulado para ver contraste
         Color.black.ignoresSafeArea()
         
         CarouselBlurOverlay(

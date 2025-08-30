@@ -22,20 +22,18 @@ struct NetworkRepository: DataRepository, NetworkInteractor {
         ).toMangaResponse
     }
     func searchMangas(query: CustomSearchDTO, page: Int) async throws -> MangaResponse {
-        // Codificar el cuerpo de la petición
+        // Cuerpo de la petición
         let request = URLRequest.post(
             url: .searchManga(),
             body: query
         )
         
-        // 🔹 Aquí codificamos el query a JSON para imprimirlo
+        // Codificamos el query a JSON para imprimirlo
         if let bodyData = try? JSONEncoder().encode(query),
            let bodyJSON = String(data: bodyData, encoding: .utf8) {
-            print("AHB: 🔗 JSON enviado en la búsqueda: \(bodyJSON)")
         }
-        print("AHB: 🌍 Endpoint: \(URL.searchManga()) | Página: \(page)")
 
-        // Realizar la petición
+        // Realizamos la petición
         return try await getJSON(
             request: request,
             type: MangaResponseDTO.self

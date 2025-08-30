@@ -36,7 +36,6 @@ struct CarruselSectionView: View {
                     value: currentCenteredCoverURL
                 )
                 .onAppear {
-                    // Valor inicial para que HomeView pinte un fondo desde el principio
                     if scrollPosition == nil {
                         scrollPosition = viewModel.bestMangas.first?.id
                     }

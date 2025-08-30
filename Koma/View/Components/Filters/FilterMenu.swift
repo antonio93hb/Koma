@@ -14,7 +14,6 @@ struct FilterMenu: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            // 🔹 Botón del filtro en línea
             HStack {
                 Menu {
                     ForEach(items, id: \.self) { item in

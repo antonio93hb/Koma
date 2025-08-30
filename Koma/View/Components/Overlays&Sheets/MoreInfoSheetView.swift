@@ -49,7 +49,7 @@ struct MoreInfoSheetView: View {
     @ViewBuilder
     private func headerSection() -> some View {
         HStack(alignment: .center, spacing: 12) {
-            // 📍 Títulos (a la izquierda)
+            // Títulos (a la izquierda)
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
                     .font(.headline)
@@ -71,7 +71,7 @@ struct MoreInfoSheetView: View {
             }
             .frame(maxWidth: UIScreen.main.bounds.width * 0.6, alignment: .leading)
 
-            // 📍 Imagen (a la derecha, centrada)
+            // Imagen (a la derecha)
             AsyncImage(url: URL(string: imageURL ?? "")) { image in
                 image.resizable().scaledToFill()
             } placeholder: {

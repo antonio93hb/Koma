@@ -117,7 +117,7 @@ extension SearchViewModel {
     /// - Important: Requiere `context` válido.
     func saveSearch() async {
         guard let context else {
-            print("AHB: ❌ No hay contexto disponible para guardar la búsqueda")
+            print("❌ No hay contexto disponible para guardar la búsqueda")
             return
         }
         
@@ -126,9 +126,7 @@ extension SearchViewModel {
         let targetGenres = Set(filters.genres)
         let targetThemes = Set(filters.themes)
         let targetDemo   = Set(filters.demographics)
-        
-        print("AHB: ℹ️ Guardar búsqueda -> query: '\(storedQuery)', géneros: \(filters.genres), temas: \(filters.themes), demografía: \(filters.demographics)")
-        
+                
         do {
             let all = try context.fetch(FetchDescriptor<SearchDB>())
             
@@ -144,7 +142,6 @@ extension SearchViewModel {
                 existing.demographics = filters.demographics
                 existing.createdAt    = Date()
                 try context.save()
-                print("AHB: 🔁 Búsqueda existente actualizada (reciente): \(existing.query)")
                 await loadSearchHistory()
                 return
             }
@@ -157,7 +154,6 @@ extension SearchViewModel {
             )
             context.insert(newSearch)
             try context.save()
-            print("AHB: ✅ Búsqueda guardada: \(storedQuery)")
             await loadSearchHistory()
             
             if searchHistory.count > 20 {
@@ -167,10 +163,9 @@ extension SearchViewModel {
                 toDelete.forEach { context.delete($0) }
                 try? context.save()
                 await loadSearchHistory()
-                print("AHB: 🧹 Historial recortado a 20 elementos")
             }
         } catch {
-            print("AHB: ❌ Error al guardar/actualizar búsqueda: \(error.localizedDescription)")
+            print("❌ Error al guardar/actualizar búsqueda: \(error.localizedDescription)")
         }
     }
     
@@ -181,17 +176,15 @@ extension SearchViewModel {
     /// - Important: Requiere `context` válido.
     func loadSearchHistory() async {
         guard let context else {
-            print("AHB: ❌ No hay contexto disponible para cargar el historial")
+            print("❌ No hay contexto disponible para cargar el historial")
             return
         }
-        print("AHB: 🔍 Contexto usado para load: \(context)")
         do {
             let descriptor = FetchDescriptor<SearchDB>(sortBy: [SortDescriptor(\.createdAt, order: .reverse)])
             let results = try context.fetch(descriptor)
             searchHistory = results
-            print("AHB: ✅ Historial recuperado con \(results.count) elementos: \(results.map { $0.query })")
         } catch {
-            print("AHB: ❌ Error al cargar historial de búsquedas: \(error.localizedDescription)")
+            print("❌ Error al cargar historial de búsquedas: \(error.localizedDescription)")
         }
     }
     
@@ -207,9 +200,8 @@ extension SearchViewModel {
             context.delete(search)
             try context.save()
             searchHistory.removeAll { $0.id == search.id }
-            print("AHB: 🗑️ Búsqueda eliminada: \(search.query)")
         } catch {
-            print("AHB: ❌ Error eliminando búsqueda: \(error.localizedDescription)")
+            print("❌ Error eliminando búsqueda: \(error.localizedDescription)")
         }
     }
     

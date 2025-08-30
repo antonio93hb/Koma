@@ -22,7 +22,7 @@ struct MangaDetailView: View {
 
     var body: some View {
         ZStack {
-            // 📸 Fondo desenfocado
+            // Fondo desenfocado
             Color.clear
                 .background {
                     BlurredBackground(imageURL: manga.imageURL)
@@ -164,7 +164,6 @@ extension MangaDetailView {
         @Environment(\.colorScheme) private var colorScheme
         
         var body: some View {
-            // Define adaptive colors for progress bars
             let savedColor = colorScheme == .dark ? Color.white.opacity(0.3) : Color.gray.opacity(0.4)
             let readColor = colorScheme == .dark ? Color.white.opacity(0.5) : Color.black.opacity(0.5)
             VStack(spacing: 4) {
@@ -328,7 +327,6 @@ extension MangaDetailView {
         let viewModel: MangaViewModel
 
         var body: some View {
-            // 1. Determina estado de los botones
             let current = ownedVolumes ?? 0
             let isMinusDisabled = current <= 0
             let isPlusDisabled = maxVolumes != nil ? current >= (maxVolumes ?? Int.max) : false

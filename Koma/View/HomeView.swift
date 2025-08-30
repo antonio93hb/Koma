@@ -21,7 +21,6 @@ struct HomeView: View {
                 } else {
                     ScrollView {
                         ZStack(alignment: .top) {
-                            // Fondo borroso anclado al carrusel: se mueve junto al contenido
                             CarouselBlurOverlay(
                                 imageURL: focusedCoverURL,
                                 anchorFrame: carouselFrame,

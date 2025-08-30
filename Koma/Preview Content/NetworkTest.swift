@@ -22,7 +22,6 @@ struct NetworkTest: DataRepository {
         let all = try getJSON(fileName: "MangaTestPreview", type: MangaResponseDTO.self).toMangaResponse
         let per = all.metadata.per
 
-        // Filtro muy simple por título
         let q = (query.searchTitle ?? "").trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         let filtered = q.isEmpty ? all.items : all.items.filter { m in
             let haystack = [m.title, m.titleEnglish, m.titleJapanese]
@@ -31,7 +30,6 @@ struct NetworkTest: DataRepository {
             return query.searchContains ? haystack.contains(q) : haystack.hasPrefix(q)
         }
 
-        // Paginación básica
         let start = max(0, (page - 1) * per)
         let pageItems = Array(filtered.dropFirst(start).prefix(per))
 

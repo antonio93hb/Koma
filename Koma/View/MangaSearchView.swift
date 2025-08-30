@@ -36,7 +36,6 @@ struct MangaSearchView: View {
                         .zIndex(0)
                     }
 
-                    // --- CONTENIDO ---
                     VStack {
                         searchBar
                         filtersSection

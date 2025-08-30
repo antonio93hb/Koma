@@ -25,7 +25,6 @@ struct TagLabel: View {
                 .background(style.color.opacity(0.2))
                 .clipShape(Capsule())
 
-            // ✅ Solo muestra la X si hay un callback definido
             if let onRemove = onRemove {
                 Button(action: onRemove) {
                     Image(systemName: "xmark.circle.fill")
