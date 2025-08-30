@@ -94,15 +94,12 @@ struct HomeView: View {
     }
 
     private var gridSection: some View {
-        LazyVGrid(columns: [
-            GridItem(.flexible()),
-            GridItem(.flexible()),
-            GridItem(.flexible())
-        ], spacing: 16) {
+        let columnCount = UIDevice.current.userInterfaceIdiom == .pad ? 5 : 3
+        return LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: columnCount), spacing: 16) {
             ForEach(viewModel.mangas) { manga in
                 NavigationLink(destination: MangaDetailView(manga: manga)) {
                     MangaImg(manga: manga)
-                        .frame(height: 150)
+                        .aspectRatio(2/3, contentMode: .fit)
                         .overlay(
                             RoundedRectangle(cornerRadius: 6)
                                 .stroke(Color.primary, lineWidth: 1.5)
@@ -116,8 +113,7 @@ struct HomeView: View {
                 }
             }
         }
-        .padding(.horizontal)
-        .padding(.vertical)
+        .padding()
     }
 }
 
