@@ -23,10 +23,14 @@ enum MangaStatus: String {
     /// Texto amigable para la UI
     var text: String {
         switch self {
-        case .finished: return "Finalizado"
-        case .currentlyPublishing: return "En emisión"
-        case .onHiatus: return "En pausa"
-        case .unknown: return "Desconocido"
+        case .finished:
+            return String(localized: "status_finished")
+        case .currentlyPublishing:
+            return String(localized: "status_currently_publishing")
+        case .onHiatus:
+            return String(localized: "status_on_hiatus")
+        case .unknown:
+            return String(localized: "status_unknown")
         }
     }
 

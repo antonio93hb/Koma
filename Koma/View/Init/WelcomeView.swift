@@ -15,12 +15,12 @@ struct WelcomeView: View {
                     .bold()
                     .padding()
                 
-                Text("Welcome to KOMA")
+                Text("welcome")
                     .font(.largeTitle)
                     .foregroundStyle(.primary)
                     .bold()
                 
-                Text("Explore manga, authors, genres and much more with ***KOMA***.")
+                Text("explore_manga")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
@@ -29,7 +29,7 @@ struct WelcomeView: View {
                 Button {
                     rootManager.currentView = .login
                 } label: {
-                    Text("Login")
+                    Text("login")
                         .font(.headline)
                         .frame(maxWidth: .infinity)
                         .padding()
@@ -40,7 +40,7 @@ struct WelcomeView: View {
                         .padding(.horizontal)
                 }
                 
-                Text("*Developed with the **MyManga API*** from **Apple Coding Academy**")
+                Text("developed_with")
                     .font(.footnote)
                     .foregroundColor(.secondary)
                     .padding()

@@ -9,13 +9,13 @@ enum NetworkError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .nonHTTP:
-            return String(localized: "Non HTTP response")
+            return String(localized: "network_error_non_http")
         case .general(let error):
-            return String(localized: "General error \(error.localizedDescription)")
+            return String(localized: "network_error_general \(error.localizedDescription)")
         case .status(let code):
-            return String(localized: "Status code \(code)")
+            return String(localized: "network_error_status_code \(code)")
         case .json(let error):
-            return String(localized: "JSON parsing error \(error.localizedDescription)")
+            return String(localized: "network_error_json \(error.localizedDescription)")
         }
     }
 }

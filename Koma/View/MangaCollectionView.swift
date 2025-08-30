@@ -45,10 +45,10 @@ struct MangaCollectionView: View {
                                     .scaledToFit()
                                     .frame(width: 80, height: 80)
                                     .foregroundStyle(.gray.opacity(0.5))
-                                Text("No saved mangas yet.")
+                                Text("collection_empty_title")
                                     .font(.title3).fontWeight(.semibold)
                                     .foregroundStyle(.secondary)
-                                Text("Save your favorite mangas by opening their details.")
+                                Text("collection_empty_subtitle")
                                     .font(.subheadline)
                                     .foregroundStyle(.gray.opacity(0.6))
                                     .padding(.horizontal, 30)
@@ -61,7 +61,7 @@ struct MangaCollectionView: View {
                                 ForEach(viewModel.savedMangas) { manga in
                                     MangaRow(
                                         manga: manga,
-                                        ownedVolumeText: "Tomos: \(manga.ownedVolumes ?? 0) / \(manga.volumes ?? 0)"
+                                        ownedVolumeText: "volumes_label \(manga.ownedVolumes ?? 0) \(manga.volumes ?? 0)"
                                     )
                                     .contentShape(Rectangle())
                                     .onTapGesture { selectedManga = manga }
@@ -84,7 +84,7 @@ struct MangaCollectionView: View {
                     .zIndex(1)
                 }
             }
-            .navigationTitle("Guardados")
+            .navigationTitle("collection")
             .navigationBarTitleDisplayMode(.automatic)
             .toolbarBackground(.hidden, for: .navigationBar)
             .navigationDestination(item: $selectedManga) { manga in
@@ -104,8 +104,8 @@ struct MangaCollectionView: View {
                     .frame(height: 60)
                     .overlay(
                         HStack(spacing: 16) {
-                            Label("Guardados: \(viewModel.savedMangas.count)", systemImage: "bookmark.fill")
-                            Label("Tomos: \(totalOwned) / \(totalVolumes)", systemImage: "books.vertical")
+                            Label("saved: \(viewModel.savedMangas.count)", systemImage: "bookmark.fill")
+                            Label("volumes_label \(totalOwned) \(totalVolumes)", systemImage: "books.vertical")
                         }
                         .font(.footnote)
                         .foregroundStyle(.primary)

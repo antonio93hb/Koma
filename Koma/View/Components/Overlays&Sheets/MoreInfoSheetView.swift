@@ -39,7 +39,7 @@ struct MoreInfoSheetView: View {
             .background(
                 BlurredBackground(imageURL: imageURL)
             )
-            .navigationTitle("Información")
+            .navigationTitle("more_info")
             .navigationBarTitleDisplayMode(.inline)
         }
     }
@@ -90,7 +90,7 @@ struct MoreInfoSheetView: View {
     @ViewBuilder
     private func authorsSection() -> some View {
         if !authors.isEmpty {
-            section(title: "Autores") {
+            section(title: "authors") {
                 ForEach(authors, id: \.id) { author in
                     HStack(alignment: .center, spacing: 8) {
                         ZStack {
@@ -120,7 +120,7 @@ struct MoreInfoSheetView: View {
     private func demographicsSection() -> some View {
         if !demographics.isEmpty {
             VStack(alignment: .leading, spacing: 6) {
-                Text("Demografía")
+                Text("demographic")
                     .font(.headline)
                     .padding(.horizontal)
 
@@ -140,7 +140,7 @@ struct MoreInfoSheetView: View {
     private func genresSection() -> some View {
         if !genres.isEmpty {
             VStack(alignment: .leading, spacing: 6) {
-                Text("Géneros")
+                Text("genres")
                     .font(.headline)
                     .padding(.horizontal)
                 FlowLayout(items: genres.map { $0.genre }) { genreName in
@@ -154,7 +154,7 @@ struct MoreInfoSheetView: View {
     private func themesSection() -> some View {
         if !themes.isEmpty {
             VStack(alignment: .leading, spacing: 6) {
-                Text("Temas")
+                Text("themes")
                     .font(.headline)
                     .padding(.horizontal)
                 FlowLayout(items: themes.map { $0.name }) { themeName in
@@ -169,7 +169,7 @@ struct MoreInfoSheetView: View {
         if let background, !background.isEmpty {
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
-                    Text("Información adicional")
+                    Text("additional_info")
                         .font(.headline)
                     Spacer()
                     Image(systemName: showAdditionalInfo ? "chevron.up" : "chevron.down")
@@ -197,7 +197,7 @@ struct MoreInfoSheetView: View {
     @ViewBuilder
     private func urlSection() -> some View {
         if let urlString = url, !urlString.isEmpty, let validURL = URL(string: urlString) {
-            section(title: "URL") {
+            section(title: "url") {
                 Link(urlString, destination: validURL)
                     .font(.footnote)
                     .foregroundColor(.blue)
@@ -206,7 +206,7 @@ struct MoreInfoSheetView: View {
         }
     }
     
-    private func section<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {
+    private func section<Content: View>(title: LocalizedStringKey, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
                 Text(title)

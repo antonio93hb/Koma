@@ -7,7 +7,7 @@
 import SwiftUI
 
 struct FilterMenu: View {
-    let title: String
+    let title: LocalizedStringKey
     let items: [String]
     @Binding var selectedItems: [String]
     let styleProvider: (String) -> TagStyle
@@ -33,7 +33,7 @@ struct FilterMenu: View {
                         }
                     }
                 } label: {
-                    AppGlassButton(title: title) { }
+                    AppGlassButton(titleKey: title) { }
                 }
             }
         }

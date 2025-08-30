@@ -44,11 +44,11 @@ struct MangaSearchView: View {
                             loadingSection
                         } else {
                             if searchViewModel.shouldShowHistory {
-                                Text("Historial de búsquedas")
+                                Text("search_history_title")
                                     .font(.headline)
                                     .padding(.horizontal)
                             } else if searchViewModel.shouldShowResults {
-                                Text("Resultados:")
+                                Text("search_results_title")
                                     .font(.headline)
                                     .padding(.horizontal)
                             }
@@ -74,7 +74,7 @@ struct MangaSearchView: View {
             .onTapGesture {
                 isSearchFocused = false
             }
-            .navigationTitle("Buscar")
+            .navigationTitle("search_navigation_title")
             .navigationBarTitleDisplayMode(isSearchFocused ? .inline : .automatic)
             .toolbarBackground(isSearchFocused ? .visible : .hidden, for: .navigationBar)
             .animation(.easeInOut(duration: 0.2), value: isSearchFocused)
@@ -91,7 +91,7 @@ struct MangaSearchView: View {
     private var searchBar: some View {
         // Barra de búsqueda y botón
         HStack {
-            TextField("Buscar manga...", text: Binding(
+            TextField("search_placeholder", text: Binding(
                 get: { searchViewModel.searchTitle },
                 set: { searchViewModel.searchTitle = $0 }
             ))
@@ -135,7 +135,7 @@ struct MangaSearchView: View {
         VStack(spacing: 8) {
             HStack(spacing: 6) {
                 Image(systemName: "line.3.horizontal.decrease.circle")
-                Text("Filtros")
+                Text("search_filters_title")
                 Spacer()
                 Image(systemName: "chevron.down")
                     .rotationEffect(.degrees(isExpanded ? 180 : 0))
@@ -157,7 +157,7 @@ struct MangaSearchView: View {
             if isExpanded {
                 HStack {
                     FilterMenu(
-                        title: "Género",
+                        title: "genre",
                         items: GenreUIHelper.allGenres,
                         selectedItems: Binding(
                             get: { searchViewModel.selectedGenres },
@@ -169,7 +169,7 @@ struct MangaSearchView: View {
                     )
                     
                     FilterMenu(
-                        title: "Temas",
+                        title: "theme",
                         items: ThemeUIHelper.allThemes,
                         selectedItems: Binding(
                             get: { searchViewModel.selectedThemes },
@@ -181,7 +181,7 @@ struct MangaSearchView: View {
                     )
                     
                     FilterMenu(
-                        title: "Demografía",
+                        title: "demographic",
                         items: DemographicUIHelper.allDemographics,
                         selectedItems: Binding(
                             get: { searchViewModel.selectedDemographics },
@@ -197,7 +197,7 @@ struct MangaSearchView: View {
                 
                 // Mostrar etiquetas seleccionadas agrupadas por categoría
                 FilterTagSection(
-                    title: "Género",
+                    title: "genre",
                     items: Binding(
                         get: { searchViewModel.selectedGenres },
                         set: { newValue in
@@ -208,7 +208,7 @@ struct MangaSearchView: View {
                 )
                 
                 FilterTagSection(
-                    title: "Temas",
+                    title: "theme",
                     items: Binding(
                         get: { searchViewModel.selectedThemes },
                         set: { newValue in
@@ -219,7 +219,7 @@ struct MangaSearchView: View {
                 )
                 
                 FilterTagSection(
-                    title: "Demografía",
+                    title: "demographic",
                     items: Binding(
                         get: { searchViewModel.selectedDemographics },
                         set: { newValue in
@@ -281,7 +281,7 @@ struct MangaSearchView: View {
             ProgressView()
                 .progressViewStyle(CircularProgressViewStyle())
                 .scaleEffect(1.2)
-            Text("Buscando…")
+            Text("searching_message")
                 .foregroundColor(.secondary)
                 .font(.subheadline)
         }
@@ -298,7 +298,7 @@ struct MangaSearchView: View {
                 .frame(width: 40, height: 40)
                 .foregroundColor(.secondary.opacity(0.6))
 
-            Text("No se han encontrado resultados")
+            Text("search_no_results")
                 .foregroundColor(.secondary)
                 .font(.subheadline)
         }

@@ -16,13 +16,13 @@ enum MangaError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .loadFromPersistence:
-            return String(localized: "No se pudieron cargar los mangas guardados.")
+            return String(localized: "load_persistence_error")
         case .invalidData:
-            return String(localized: "Los datos proporcionados no son válidos.")
+            return String(localized: "invalid_data_error")
         case .custom(let message):
             return message
         case .unknown(let error):
-            return String(localized: "Error desconocido: \(error.localizedDescription)")
+            return String(localized: "unknown_error: \(error.localizedDescription)")
         }
     }
 }

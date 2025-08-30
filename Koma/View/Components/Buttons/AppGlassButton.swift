@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct AppGlassButton: View {
-    var title: String
+    var titleKey: LocalizedStringKey
     var systemImage: String?
     var action: () -> Void
 
@@ -18,7 +18,7 @@ struct AppGlassButton: View {
                 if let icon = systemImage {
                     Image(systemName: icon)
                 }
-                Text(title)
+                Text(titleKey)
             }
             .font(.subheadline)
             .padding(.horizontal, 20)
@@ -34,7 +34,7 @@ struct AppGlassButton: View {
 }
 
 #Preview(traits: .sizeThatFitsLayout) {
-    AppGlassButton(title: "Añadir", systemImage: "books.vertical") {
+    AppGlassButton(titleKey: "add_button", systemImage: "books.vertical") {
         print("Añadir tapped")
     }
     .padding()

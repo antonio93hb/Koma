@@ -14,7 +14,7 @@ struct LoginView: View {
                 .frame(width: 120, height: 120)
                 .padding()
 
-            Text("Loading...")
+            Text("loading")
                 .font(.title)
                 .fontWeight(.bold)
                 .foregroundStyle(.secondary)

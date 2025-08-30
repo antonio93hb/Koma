@@ -17,7 +17,7 @@ struct HomeView: View {
                 
                 // Contenido principal
                 if viewModel.isLoading && viewModel.mangas.isEmpty {
-                    ProgressView("Loading mangas...")
+                    ProgressView("loading_mangas")
                 } else {
                     ScrollView {
                         ZStack(alignment: .top) {
@@ -36,7 +36,7 @@ struct HomeView: View {
                                     .zIndex(1)
 
                                 HStack {
-                                    Text("Popular")
+                                    Text("popular")
                                     Spacer()
                                     toggleViewButton
                                 }
@@ -56,7 +56,7 @@ struct HomeView: View {
                             .zIndex(1)
                         }
                     }
-                    .navigationTitle("Descubrir")
+                    .navigationTitle("discover_title")
                 }
             }
         }

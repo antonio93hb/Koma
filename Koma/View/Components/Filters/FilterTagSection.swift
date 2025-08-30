@@ -14,7 +14,7 @@ struct FilterTagSection: View {
     var body: some View {
         if !items.isEmpty {
             HStack(alignment: .center) {
-                Text("\(title):")
+                Text(verbatim: "\(title):")
                     .font(.subheadline)
                     .bold()
                 ScrollView(.horizontal, showsIndicators: false) {

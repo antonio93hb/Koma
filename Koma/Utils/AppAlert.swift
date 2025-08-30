@@ -20,22 +20,22 @@ enum AppAlert: Identifiable {
     var alert: Alert {
         switch self {
         case .successVolumes:
-            return Alert(title: Text("Actualizado"), message: Text("Los tomos se han modificado correctamente."))
+            return Alert(title: Text("updated_title"), message: Text("updated_message"))
 
         case .invalidInput:
-            return Alert(title: Text("Error"), message: Text("Introduce un número válido."))
+            return Alert(title: Text("error_title"), message: Text("invalid_input_message"))
 
         case .saved:
-            return Alert(title: Text("Guardado"), message: Text("Este manga ha sido guardado en favoritos."))
+            return Alert(title: Text("saved_title"), message: Text("saved_message"))
 
         case .deleted:
-            return Alert(title: Text("Eliminado"), message: Text("Este manga ha sido eliminado de favoritos."))
+            return Alert(title: Text("deleted"), message: Text("deleted_message"))
 
         case .failedToSave:
-            return Alert(title: Text("Error"), message: Text("No se ha podido guardar el manga. Inténtalo más tarde."))
+            return Alert(title: Text("error_title"), message: Text("failed_to_save_message"))
 
         case .failedToDelete:
-            return Alert(title: Text("Error"), message: Text("No se ha podido eliminar el manga."))
+            return Alert(title: Text("error_title"), message: Text("failed_to_delete_message"))
         }
     }
 }

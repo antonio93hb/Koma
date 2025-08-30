@@ -6,13 +6,13 @@ struct ContentView: View {
 
     var body: some View {
         TabView {
-            Tab("Mangas", systemImage: "text.book.closed.fill") {
+            Tab("mangas", systemImage: "text.book.closed.fill") {
                 HomeView()
             }
-            Tab("Collection", systemImage: "books.vertical.fill") {
+            Tab("collection", systemImage: "books.vertical.fill") {
                 MangaCollectionView()
             }
-            Tab("Search", systemImage: "magnifyingglass") {
+            Tab("search", systemImage: "magnifyingglass") {
                 MangaSearchView()
             }
         }

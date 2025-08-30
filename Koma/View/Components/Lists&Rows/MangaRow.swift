@@ -52,7 +52,7 @@ struct MangaRow: View {
                 }
                 if let owned = manga.ownedVolumes, let total = manga.volumes, owned == total {
                     Label {
-                        Text("¡Colección completa!")
+                        Text("collection_complete")
                     } icon: {
                         Image(systemName: "checkmark.circle.fill")
                     }

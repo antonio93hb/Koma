@@ -141,7 +141,7 @@ struct MangaDetailView: View {
                 .frame(maxWidth: UIScreen.main.bounds.width * 0.9, alignment: .leading)
 
             if synopsis.count > 150 {
-                Button(showFullSynopsis ? "menos" : "más") {
+                Button(showFullSynopsis ? "show_less" : "show_more") {
                     withAnimation {
                         showFullSynopsis.toggle()
                     }
@@ -170,7 +170,13 @@ extension MangaDetailView {
             VStack(spacing: 4) {
                 if let start = manga.startDate {
                     if let end = manga.endDate {
-                        Label("Finalizado el \(end.formatted(date: .long, time: .omitted))", systemImage: "calendar")
+                        Label(
+                            String(
+                                format: NSLocalizedString("finished_on_label", comment: ""),
+                                end.formatted(date: .long, time: .omitted)
+                            ),
+                            systemImage: "calendar"
+                        )
                             .font(.caption)
                             .padding(.horizontal, 10)
                             .padding(.vertical, 6)
@@ -184,7 +190,13 @@ extension MangaDetailView {
                             )
                             .foregroundColor(.secondary)
                     } else {
-                        Label("En emisión desde \(start.formatted(date: .long, time: .omitted))", systemImage: "calendar")
+                        Label(
+                            String(
+                                format: NSLocalizedString("airing_since_label", comment: ""),
+                                start.formatted(date: .long, time: .omitted)
+                            ),
+                            systemImage: "calendar"
+                        )
                             .font(.caption)
                             .padding(.horizontal, 10)
                             .padding(.vertical, 6)
@@ -202,21 +214,21 @@ extension MangaDetailView {
 
                 HStack(spacing: 16) {
                     if let chapters = manga.chapters {
-                        Label("Capítulos: \(chapters)", systemImage: "doc.plaintext")
+                        Label("chapters_label \(chapters)", systemImage: "doc.plaintext")
                     }
                     if let volumes = manga.volumes {
-                        Label("Tomos: \(volumes)", systemImage: "books.vertical")
+                        Label("tomos_label \(volumes)", systemImage: "books.vertical")
                     }
                 }
 
-                // Nueva sección de progreso de tomos guardados y leídos
+                // Sección de progreso de tomos guardados y leídos
                 if let owned = ownedVolumes, let total = manga.volumes {
                     VStack(spacing: 6) {
                         // Barra para tomos guardados
                         ProgressView(value: Float(owned), total: Float(total))
                             .progressViewStyle(LinearProgressViewStyle(tint: savedColor))
                             .frame(maxWidth: 200)
-                        Text("Guardados: \(owned) / \(total)")
+                        Text("owned_volumes_progress \(owned) \(total)")
                             .font(.caption)
                             .foregroundStyle(.secondary)
 
@@ -225,13 +237,13 @@ extension MangaDetailView {
                             ProgressView(value: Float(read), total: Float(total))
                                 .progressViewStyle(LinearProgressViewStyle(tint: readColor))
                                 .frame(maxWidth: 200)
-                            Text("Leídos: \(read) / \(total)")
+                            Text("read_volumes_progress \(read) \(total)")
                                 .font(.caption2)
                                 .foregroundStyle(.secondary)
                         }
                     }
                     if let read = readVolumes, read == total {
-                        Label("¡Colección leída completamente!", systemImage: "checkmark.seal")
+                        Label("collection_read", systemImage: "checkmark.seal")
                             .font(.caption)
                             .padding(.horizontal, 10)
                             .padding(.vertical, 6)
@@ -245,7 +257,7 @@ extension MangaDetailView {
                             )
                             .foregroundColor(.secondary)
                     } else if owned == total {
-                        Label("¡Guardada colección completa!", systemImage: "checkmark.seal")
+                        Label("collection_saved", systemImage: "checkmark.seal")
                             .font(.caption)
                             .padding(.horizontal, 10)
                             .padding(.vertical, 6)
@@ -295,8 +307,7 @@ extension MangaDetailView {
                                 }
                             }
                         }
-                        Text("\(score, specifier: "%.1f")/10")
-                            .font(.caption)
+                        Text(verbatim: String(format: "%.1f/10", score))                            .font(.caption)
                             .foregroundColor(.gray)
                     }
                     .frame(maxWidth: .infinity, alignment: .center)
@@ -317,7 +328,7 @@ extension MangaDetailView {
         let viewModel: MangaViewModel
 
         var body: some View {
-            // 1. Determinar estado de los botones
+            // 1. Determina estado de los botones
             let current = ownedVolumes ?? 0
             let isMinusDisabled = current <= 0
             let isPlusDisabled = maxVolumes != nil ? current >= (maxVolumes ?? Int.max) : false
@@ -336,7 +347,7 @@ extension MangaDetailView {
                         .foregroundColor(isMinusDisabled ? .gray : .blue)
                 }
 
-                Text("\(ownedVolumes ?? 0)")
+                Text(verbatim: "\(ownedVolumes ?? 0)")
                     .font(.headline)
                     .frame(minWidth: 30)
 
@@ -375,7 +386,7 @@ extension MangaDetailView {
             VStack {
                 // Primer HStack: Guardado, Borrar
                 HStack {
-                    Label("Guardado", systemImage: "checkmark")
+                    Label("saved_title", systemImage: "checkmark")
                         .font(.subheadline)
                         .padding(.horizontal, 20)
                         .padding(.vertical, 10)
@@ -384,7 +395,7 @@ extension MangaDetailView {
                         .clipShape(Capsule())
                         .overlay(Capsule().stroke(Color.gray.opacity(0.4), lineWidth: 1))
                         .shadow(radius: 0.5)
-                    AppGlassButton(title: "Borrar", systemImage: "trash") {
+                    AppGlassButton(titleKey: "delete", systemImage: "trash") {
                         Task {
                             activeAlert = await viewModel.deleteMangaAndGetAlert(manga)
                             if activeAlert == .deleted {
@@ -398,7 +409,7 @@ extension MangaDetailView {
                 // Segundo HStack: OwnedVolumesMenu y ReadVolumeStepperView en la misma línea
                 HStack(alignment: .top, spacing: 12) {
                     VStack(alignment: .center, spacing: 4) {
-                        Text("Guardados")
+                        Text("owned_label")
                             .font(.caption)
                             .foregroundColor(.secondary)
                         if manga.volumes != nil {
@@ -412,7 +423,7 @@ extension MangaDetailView {
                         }
                     }
                     VStack(alignment: .center, spacing: 4) {
-                        Text("Leídos")
+                        Text("read_label")
                             .font(.caption)
                             .foregroundColor(.secondary)
                         if let owned = ownedVolumes, owned > 0 {
@@ -439,7 +450,7 @@ extension MangaDetailView {
 
         var body: some View {
             HStack {
-                AppGlassButton(title: "Añadir", systemImage: "books.vertical") {
+                AppGlassButton(titleKey: "add", systemImage: "books.vertical") {
                     Task {
                         activeAlert = await viewModel.saveMangaAndGetAlert(manga)
                         mangaIsAlreadySaved = (activeAlert == .saved)
@@ -482,17 +493,6 @@ extension MangaDetailView {
         }
     }
     
-    // MARK: - MoreInfoButtonView
-    private struct MoreInfoButtonView: View {
-        @Binding var showMoreInfoSheet: Bool
-
-        var body: some View {
-            AppGlassButton(title: "Más info", systemImage: "info.circle") {
-                showMoreInfoSheet = true
-            }
-        }
-    }
-
     // MARK: - ReadVolumeStepperView
     private struct ReadVolumeStepperView: View {
         @Binding var readVolumes: Int?
@@ -522,7 +522,7 @@ extension MangaDetailView {
                         .foregroundColor(isMinusDisabled ? disabledColor : activeColor)
                 }
 
-                Text("\(current)")
+                Text(verbatim: "\(current)")
                     .font(.headline)
                     .frame(minWidth: 30)
 
@@ -558,7 +558,7 @@ private struct OwnedVolumesMenu: View {
         Menu {
             if let total = maxVolumes, total > 0 {
                 ForEach(1...total, id: \.self) { tomo in
-                    Button("Tomo \(tomo)") {
+                    Button("volume_label \(tomo)") {
                         Task {
                             let success = await viewModel.updateOwnedVolumes(for: manga, to: tomo)
                             if success {
@@ -570,7 +570,7 @@ private struct OwnedVolumesMenu: View {
                 }
             }
         } label: {
-            Label("Tomos: \(ownedVolumes ?? 0)", systemImage: "books.vertical")
+            Label("volumes_label: \(ownedVolumes ?? 0)", systemImage: "books.vertical")
                 .padding(8)
                 .background(.ultraThinMaterial)
                 .clipShape(Capsule())
