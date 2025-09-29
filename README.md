@@ -1,3 +1,5 @@
+![Portada](img/portada.png)
+
 # 📱 KOMA – Tu biblioteca de mangas, en la palma de tu mano
 
 **KOMA** es una app nativa para iPhone y iPad, desarrollada con SwiftUI, que te permite **descubrir, guardar y gestionar mangas** de forma rápida, visual y cómoda. Todo con un diseño limpio, moderno y totalmente adaptado a iOS 17, tanto en modo claro como oscuro.
@@ -93,8 +95,33 @@ Este proyecto ha coincidido con una etapa especialmente exigente para mí, tanto
 
 Aquí puedes ver una muestra del diseño multiplataforma de KOMA:
 
-![Previews iPhone + iPad](./Assets/Previews/koma-screens.png)  
-_(Imágenes de ejemplo en iPhone y iPad, modo claro y oscuro)_
+<p align="center">
+  <img src="img/01-Inicio.png" alt="Pantalla de bienvenida" width="250px"/><br/>
+  <em>Pantalla de bienvenida con acceso rápido</em>
+</p>
+
+<p align="center">
+  <img src="img/02-Home.png" alt="Pantalla principal en listado" width="250px"/>
+  <img src="img/02-HomeGrid.png" alt="Pantalla principal en cuadrícula" width="250px"/><br/>
+  <em>Explora mangas en formato lista o cuadrícula</em>
+</p>
+
+<p align="center">
+  <img src="img/03-Detail.png" alt="Pantalla de detalle" width="250px"/>
+  <img src="img/04-MoreInfo.png" alt="Pantalla de más información" width="250px"/><br/>
+  <em>Ficha detallada con géneros, autores y temas</em>
+</p>
+
+<p align="center">
+  <img src="img/06-Collection.png" alt="Pantalla de colección" width="250px"/>
+  <img src="img/06-CollectionDelete.png" alt="Pantalla de colección con swipe" width="250px"/><br/>
+  <em>Colección con posibilidad de borrar mediante swipe</em>
+</p>
+
+<p align="center">
+  <img src="img/05-Search.png" alt="Pantalla de búsqueda" width="250px"/><br/>
+  <em>Búsqueda avanzada con filtros de género, tema y demografía</em>
+</p>
 
 ---
 
@@ -110,3 +137,8 @@ Puedes clonarlo, probarlo en Xcode 15+ y ¡darme feedback si quieres!
 Desarrollado con 💙 por [Antonio Hernández Barbadilla](https://github.com/antonio93hb)  
 LinkedIn: [@antonio93hb](https://www.linkedin.com/in/antonio93hb/)  
 Portfolio: [antonio93hb.github.io/portfolio](https://antonio93hb.github.io/portfolio)
+
+<p align="center">
+  <img src="img/logoKomaLight.png" alt="Logo KOMA Light" width="180"/>
+  <img src="img/logoKomaDark.png" alt="Logo KOMA Dark" width="180"/>
+</p>
